@@ -57,7 +57,7 @@ export class CasesService {
         const limit = Math.min(query.limit || 12, 50);
         const skip = (page - 1) * limit;
 
-        const where: Prisma.CaseWhereInput = {};
+        const where: Prisma.CaseWhereInput = { deletedAt: null };
 
         // Only show verified/approved cases to public
         if (!query.status) {
@@ -110,8 +110,8 @@ export class CasesService {
     }
 
     async findById(id: string) {
-        const caseRecord = await this.prisma.case.findUnique({
-            where: { id },
+        const caseRecord = await this.prisma.case.findFirst({
+            where: { id, deletedAt: null },
             include: {
                 createdBy: { select: { id: true, name: true } },
                 verifiedBy: { select: { id: true, name: true } },
@@ -128,6 +128,37 @@ export class CasesService {
         });
         if (!caseRecord) throw new NotFoundException('Case not found');
         return caseRecord;
+    }
+
+    async update(id: string, dto: Partial<CreateCaseDto>, userId: string) {
+        const caseRecord = await this.findById(id);
+
+        // Ownership check (IDOR Protection)
+        if (caseRecord.createdById !== userId) {
+            throw new ForbiddenException('You can only edit your own cases');
+        }
+
+        // Status check (Business Logic Isolation)
+        if (caseRecord.status !== 'PENDING_REVIEW' && caseRecord.status !== 'REJECTED') {
+            throw new BadRequestException('Case cannot be edited in its current status');
+        }
+
+        const data: any = {};
+        if (dto.title) data.title = this.sanitize(dto.title);
+        if (dto.description) data.description = this.sanitize(dto.description);
+        if (dto.category) data.category = dto.category;
+        if (dto.location) data.location = this.sanitize(dto.location);
+        if (dto.referenceNumber) data.referenceNumber = dto.referenceNumber;
+        if (dto.sourceUrl) data.sourceUrl = dto.sourceUrl;
+        if (dto.groundStatus) data.groundStatus = this.sanitize(dto.groundStatus);
+
+        return this.prisma.case.update({
+            where: { id },
+            data: {
+                ...data,
+                status: 'PENDING_REVIEW', // Reset status to pending review after edit
+            },
+        });
     }
 
     async updateStatus(caseId: string, status: CaseStatus, userId: string, reason?: string) {

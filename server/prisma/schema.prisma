@@ -135,6 +135,8 @@ model Case {
   @@index([category])
   @@index([location])
   @@index([createdAt])
+  @@index([referenceNumber])
+  @@index([supportCount])
 }
 
 model Vote {

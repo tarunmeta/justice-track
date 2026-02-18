@@ -113,6 +113,16 @@ export class CasesController {
         return this.casesService.addLawyerComment(id, explanation, req.user.sub);
     }
 
+    @Patch(':id')
+    @UseGuards(JwtAuthGuard)
+    update(
+        @Param('id') id: string,
+        @Body() dto: Partial<CreateCaseDto>,
+        @Req() req: any,
+    ) {
+        return this.casesService.update(id, dto, req.user.sub);
+    }
+
     // Moderation list
     @Get('moderation/all')
     @UseGuards(JwtAuthGuard, RolesGuard)

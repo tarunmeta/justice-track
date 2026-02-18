@@ -103,7 +103,12 @@ export class AuthService {
     }
 
     async login(dto: LoginDto) {
-        const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+        const user = await this.prisma.user.findFirst({
+            where: {
+                email: dto.email,
+                deletedAt: null,
+            }
+        });
         if (!user) throw new UnauthorizedException('Invalid credentials');
 
         // Check for account lockout
