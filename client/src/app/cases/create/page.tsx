@@ -99,17 +99,16 @@ export default function CreateCasePage() {
                         <h2 className="font-semibold text-lg flex items-center gap-2">
                             <Camera className="w-5 h-5" /> Main Case Photo
                         </h2>
-                        <div className="relative aspect-video rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center overflow-hidden transition-all bg-gray-50/50 dark:bg-gray-900/10">
+                        <div
+                            onClick={() => mainImageRef.current?.click()}
+                            className="relative aspect-video rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all bg-gray-50/50 dark:bg-gray-900/10 hover:border-blue-500 hover:bg-blue-50/30"
+                        >
                             {mainImagePreview ? (
                                 <>
                                     <img src={mainImagePreview} alt="Preview" className="w-full h-full object-cover" />
-                                    <button
-                                        type="button"
-                                        onClick={() => mainImageRef.current?.click()}
-                                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                                    >
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                                         <p className="text-white text-sm font-medium">Click to change photo</p>
-                                    </button>
+                                    </div>
                                 </>
                             ) : (
                                 <div className="text-center p-6">
@@ -118,7 +117,7 @@ export default function CreateCasePage() {
                                     <p className="text-xs text-gray-500 mt-1 mb-4">This will be shown in the case list</p>
                                     <button
                                         type="button"
-                                        onClick={() => mainImageRef.current?.click()}
+                                        onClick={(e) => { e.stopPropagation(); mainImageRef.current?.click(); }}
                                         className="btn-secondary py-2 px-4 text-xs"
                                     >
                                         Select Photo
@@ -126,9 +125,10 @@ export default function CreateCasePage() {
                                 </div>
                             )}
                             <input
+                                id="main-image-upload"
                                 type="file"
                                 ref={mainImageRef}
-                                className="hidden"
+                                style={{ display: 'none' }}
                                 accept="image/*"
                                 onChange={(e) => {
                                     const file = e.target.files?.[0];
@@ -256,7 +256,10 @@ export default function CreateCasePage() {
 
                         <div>
                             <label className="block text-sm font-medium mb-1.5">Supporting Documents (PDF/Images)</label>
-                            <div className="border-2 border-dashed rounded-xl p-8 text-center bg-gray-50/50 dark:bg-gray-900/10">
+                            <div
+                                onClick={() => fileInputRef.current?.click()}
+                                className="border-2 border-dashed rounded-xl p-8 text-center bg-gray-50/50 dark:bg-gray-900/10 cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all"
+                            >
                                 <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto mb-3">
                                     <Upload className="w-6 h-6 text-blue-600" />
                                 </div>
@@ -265,18 +268,19 @@ export default function CreateCasePage() {
 
                                 <button
                                     type="button"
-                                    onClick={() => fileInputRef.current?.click()}
+                                    onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
                                     className="btn-secondary py-2 px-6 text-xs"
                                 >
                                     Select Files
                                 </button>
 
                                 <input
+                                    id="documents-upload"
                                     type="file"
                                     ref={fileInputRef}
+                                    style={{ display: 'none' }}
                                     multiple
                                     accept=".pdf,.jpg,.jpeg,.png"
-                                    className="hidden"
                                     onChange={(e) => {
                                         const selectedFiles = e.target.files;
                                         if (selectedFiles) {
