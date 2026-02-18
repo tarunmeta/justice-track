@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { MapPin, Hash, Link2, AlertTriangle, ImageIcon, FileText } from 'lucide-react';
+import { MapPin, Hash, Link2, AlertTriangle, ImageIcon, FileText, Trash2, Crosshair } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { CATEGORY_LABELS } from '@/lib/utils';
@@ -11,9 +11,9 @@ import toast from 'react-hot-toast';
 import { LegalDisclaimer } from '@/components/legal-disclaimer';
 
 /**
- * PORTAL V7 - COMPLETELY DETACHED
+ * PORTAL V8 - COMPLETELY DETACHED
  */
-function PortalV7({ children }: { children: React.ReactNode }) {
+function PortalV8({ children }: { children: React.ReactNode }) {
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
     if (!mounted) return null;
@@ -21,17 +21,58 @@ function PortalV7({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * VERSION: NUCLEAR_ISOLATION_V7
- * - NO IDs
- * - NO htmlFor
- * - NO <label> tags (Using <div> only)
- * - Absolute Click Capture Diagnostic
+ * VERSION: HYPER_DIAGNOSTIC_V8
+ * - Visual Pathology: Highlights all file inputs in red.
+ * - Real-time Trace: Shows the last clicked element path in the UI.
+ * - Clean Mode: Button to remove all file inputs from DOM.
  */
 export default function CreateCasePage() {
-    // DIAGNOSTIC CORE
+    const [lastTrace, setLastTrace] = useState<string>("No clicks detected yet.");
+    const [vizActive, setVizActive] = useState(true);
+
+    // -------------------------------------------------------------------------
+    // DIAGNOSTIC CORE - SHOWS PATHOLOGY
+    // -------------------------------------------------------------------------
     useEffect(() => {
-        console.log("DIAGNOSTIC: V7 ACTIVE - MAPPING ALL CLICKS");
-        const handler = (e: MouseEvent) => {
+        if (!vizActive) return;
+
+        const visualizerInterval = setInterval(() => {
+            const fileInputs = document.querySelectorAll('input[type="file"]');
+            fileInputs.forEach((el, i) => {
+                const input = el as HTMLInputElement;
+                input.style.display = 'block';
+                input.style.position = 'fixed';
+                input.style.border = '5px solid red';
+                input.style.padding = '10px';
+                input.style.background = 'white';
+                input.style.color = 'black';
+                input.style.fontWeight = 'bold';
+                input.style.zIndex = '99999999';
+                input.style.opacity = '1';
+                input.style.pointerEvents = 'auto'; // Make it visible and clickable for proof
+
+                // Add a label if missing
+                let label = document.getElementById(`diag-label-${i}`);
+                if (!label) {
+                    label = document.createElement('div');
+                    label.id = `diag-label-${i}`;
+                    label.textContent = `!!!! RENDERED FILE INPUT #${i} !!!!`;
+                    label.style.position = 'fixed';
+                    label.style.background = 'red';
+                    label.style.color = 'white';
+                    label.style.padding = '2px 8px';
+                    label.style.fontSize = '10px';
+                    label.style.zIndex = '99999999';
+                    document.body.appendChild(label);
+                }
+
+                const rect = input.getBoundingClientRect();
+                label.style.top = `${rect.top - 20}px`;
+                label.style.left = `${rect.left}px`;
+            });
+        }, 1000);
+
+        const clickTracer = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
             const path = [];
             let curr: HTMLElement | null = target;
@@ -39,14 +80,28 @@ export default function CreateCasePage() {
                 path.push(`${curr.tagName.toLowerCase()}${curr.id ? '#' + curr.id : ''}${curr.className ? '.' + curr.className.split(' ').join('.') : ''}`);
                 curr = curr.parentElement;
             }
-            console.log("CLICK DETECTED ON:", path.join(' > '));
+            const pathStr = path.reverse().join(' > ');
+            console.log("V8 TRACE:", pathStr);
+            setLastTrace(pathStr);
+
             if (target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'file') {
-                console.warn("!!!! FILE INPUT TRIGGERED !!!!");
+                console.error("V8 ALERT: A FILE INPUT CAPTURED THIS CLICK!");
+                toast.error("V8 ALERT: File Input Intercepted Click!", { id: 'v8-alert' });
             }
         };
-        window.addEventListener('click', handler, true);
-        return () => window.removeEventListener('click', handler, true);
-    }, []);
+
+        window.addEventListener('click', clickTracer, true);
+        return () => {
+            clearInterval(visualizerInterval);
+            window.removeEventListener('click', clickTracer, true);
+        };
+    }, [vizActive]);
+
+    const nukeAllInputs = () => {
+        const inputs = document.querySelectorAll('input[type="file"]');
+        inputs.forEach(i => i.remove());
+        toast.success(`Nuked ${inputs.length} file inputs from DOM`);
+    };
 
     const router = useRouter();
     const { isAuthenticated } = useAuthStore();
@@ -109,10 +164,33 @@ export default function CreateCasePage() {
 
     return (
         <div className="min-h-screen bg-[var(--bg-primary)] pb-20">
-            {/* BIG RED FRESHNESS BANNER */}
-            <div className="bg-red-600 text-white p-4 text-center font-bold sticky top-16 z-[99999] border-4 border-yellow-400">
-                NUCLEAR FIX V7 ACTIVE - IF YOU SEE THIS, IT'S THE NEWEST CODE
-                <br /><span className="text-xs font-mono">NO LABELS | NO IDs | PORTAL DETACHED | CLICK TRACKER ON</span>
+            {/* V8 ROYAL BLUE DIAGNOSTIC BANNER */}
+            <div className="bg-blue-700 text-white p-4 text-center sticky top-16 z-[999999] border-b-4 border-white shadow-2xl">
+                <div className="font-black text-lg">DIAGNOSTIC BUILD V8 ACTIVE</div>
+                <div className="text-xs opacity-90 font-mono mt-1">
+                    PATHOLOGY VISUALIZER ON | CLICK TRACER ON | PORTAL V8 DETACHED
+                </div>
+
+                {/* TOOLBAR */}
+                <div className="flex justify-center gap-4 mt-4">
+                    <button
+                        onClick={nukeAllInputs}
+                        className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-xs font-bold flex items-center gap-2 transition shadow-lg"
+                    >
+                        <Trash2 className="w-3 h-3" /> NUKE ALL FILE INPUTS
+                    </button>
+                    <button
+                        onClick={() => setVizActive(!vizActive)}
+                        className={`${vizActive ? 'bg-amber-500' : 'bg-gray-500'} px-3 py-1 rounded text-xs font-bold flex items-center gap-2 transition shadow-lg`}
+                    >
+                        <Crosshair className="w-3 h-3" /> {vizActive ? 'VISUALIZER: ON' : 'VISUALIZER: OFF'}
+                    </button>
+                </div>
+
+                {/* REAL-TIME TRACE */}
+                <div className="mt-3 bg-black/40 p-2 rounded text-[10px] font-mono text-cyan-300 border border-white/20 truncate">
+                    LAST CLICK PATH: {lastTrace}
+                </div>
             </div>
 
             <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
@@ -122,13 +200,15 @@ export default function CreateCasePage() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6" onClick={(e) => e.stopPropagation()}>
-                    <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-6 space-y-6">
+                    <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-6 space-y-6 shadow-sm">
+                        <div className="text-sm font-bold border-b pb-2 mb-2 text-blue-600 dark:text-blue-400">DEBUG ZONE: NO LABELS | NO IDs</div>
+
                         {/* CASE TITLE */}
                         <div>
                             <div className="text-sm font-semibold mb-2">Case Title *</div>
                             <input
                                 type="text"
-                                className="input-field"
+                                className="input-field border-2 focus:border-blue-500"
                                 placeholder="Factual title"
                                 value={form.title}
                                 onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -141,7 +221,7 @@ export default function CreateCasePage() {
                         <div>
                             <div className="text-sm font-semibold mb-2">Description *</div>
                             <textarea
-                                className="textarea-field min-h-[150px]"
+                                className="textarea-field min-h-[150px] border-2 focus:border-blue-500"
                                 placeholder="Describe facts..."
                                 value={form.description}
                                 onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -154,7 +234,7 @@ export default function CreateCasePage() {
                             <div>
                                 <div className="text-sm font-semibold mb-2">Category *</div>
                                 <select
-                                    className="input-field"
+                                    className="input-field border-2"
                                     value={form.category}
                                     onChange={(e) => setForm({ ...form, category: e.target.value })}
                                     onClick={(e) => e.stopPropagation()}
@@ -170,7 +250,7 @@ export default function CreateCasePage() {
                                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     <input
                                         type="text"
-                                        className="input-field pl-10"
+                                        className="input-field pl-10 border-2"
                                         placeholder="City, State"
                                         value={form.location}
                                         onChange={(e) => setForm({ ...form, location: e.target.value })}
@@ -182,43 +262,14 @@ export default function CreateCasePage() {
                         </div>
                     </div>
 
-                    {/* REFERENCES */}
-                    <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-6 space-y-6">
-                        <div className="text-lg font-bold border-b pb-2">Verification References</div>
-                        <div className="grid sm:grid-cols-2 gap-6">
-                            <div>
-                                <div className="text-sm font-semibold mb-2">FIR / Case ID</div>
-                                <input
-                                    type="text"
-                                    className="input-field"
-                                    placeholder="ID number"
-                                    value={form.referenceNumber}
-                                    onChange={(e) => setForm({ ...form, referenceNumber: e.target.value })}
-                                    onClick={(e) => e.stopPropagation()}
-                                />
-                            </div>
-                            <div>
-                                <div className="text-sm font-semibold mb-2">News URL</div>
-                                <input
-                                    type="url"
-                                    className="input-field"
-                                    placeholder="Link to source"
-                                    value={form.sourceUrl}
-                                    onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })}
-                                    onClick={(e) => e.stopPropagation()}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
                     {/* PHOTO UPLOAD (REFS ONLY) */}
-                    <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-6 space-y-6">
+                    <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-6 space-y-6 shadow-sm">
                         <div className="text-lg font-bold border-b pb-2">Photo & Media</div>
                         <div>
                             <button
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); mainRef.current?.click(); }}
-                                className="w-full h-40 border-2 border-dashed rounded-xl flex items-center justify-center hover:bg-slate-50 transition"
+                                className="w-full h-40 border-2 border-dashed rounded-xl flex items-center justify-center hover:bg-blue-50 dark:hover:bg-blue-900/10 transition"
                             >
                                 {mainImagePreview ? (
                                     <img src={mainImagePreview} className="h-full w-full object-cover rounded-lg" />
@@ -236,16 +287,17 @@ export default function CreateCasePage() {
                         <LegalDisclaimer checked={legalChecked} onCheckedChange={setLegalChecked} />
                     </div>
 
-                    <button type="submit" disabled={loading} className="btn-primary w-full py-5 text-xl">
+                    <button type="submit" disabled={loading} className="btn-primary w-full py-5 text-xl shadow-xl shadow-blue-500/20 active:scale-[0.98]">
                         {loading ? 'Submitting...' : 'SUBMIT CASE OFFICIALY'}
                     </button>
                 </form>
             </div>
 
-            {/* COMPLETELY DETACHED INPUTS */}
-            <PortalV7>
-                <div style={{ position: 'fixed', top: '-5000px', left: '-5000px' }}>
+            {/* COMPLETELY DETACHED INPUTS V8 */}
+            <PortalV8>
+                <div id="v8-portal-container" style={{ position: 'fixed', top: '-1000px', left: '-1000px', visibility: 'visible', opacity: 1 }}>
                     <input
+                        id="v8-main-file-input"
                         ref={mainRef}
                         type="file"
                         accept="image/*"
@@ -258,13 +310,14 @@ export default function CreateCasePage() {
                         }}
                     />
                     <input
+                        id="v8-docs-file-input"
                         ref={docsRef}
                         type="file"
                         multiple
                         onChange={(e) => setSupportingDocs(e.target.files)}
                     />
                 </div>
-            </PortalV7>
+            </PortalV8>
         </div>
     );
 }
