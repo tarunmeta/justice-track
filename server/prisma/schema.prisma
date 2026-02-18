@@ -1,0 +1,186 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PUBLIC
+  LAWYER
+  LEGAL_EXPERT
+  MODERATOR
+  ADMIN
+  JUDGE
+}
+
+enum AccountStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
+  BANNED
+}
+
+enum CaseCategory {
+  ACCIDENT
+  ASSAULT
+  CORRUPTION
+  PUBLIC_SAFETY
+  OTHER
+}
+
+enum CaseStatus {
+  PENDING_REVIEW
+  UNDER_INVESTIGATION
+  VERIFIED
+  COURT_HEARING
+  RESOLVED
+  CLOSED
+  REJECTED
+  FLAGGED
+}
+
+enum VoteType {
+  SUPPORT
+  OPPOSE
+}
+
+enum UpdateType {
+  SUBMISSION
+  REVIEW
+  VERIFICATION
+  HEARING
+  RESOLUTION
+  STATUS_CHANGE
+  GENERAL
+}
+
+enum ModerationAction {
+  APPROVE_CASE
+  REJECT_CASE
+  FLAG_CASE
+  VERIFY_CASE
+  EDIT_CASE
+  SUSPEND_USER
+  BAN_USER
+  UNSUSPEND_USER
+  DELETE_COMMENT
+}
+
+model User {
+  id                     String        @id @default(uuid())
+  name                   String
+  email                  String        @unique
+  passwordHash           String        @map("password_hash")
+  role                   Role          @default(PUBLIC)
+  status                 AccountStatus @default(PENDING)
+  verificationDocuments  String?       @map("verification_documents")
+  refreshToken           String?       @map("refresh_token")
+  otpCode                String?       @map("otp_code")
+  otpExpiresAt           DateTime?     @map("otp_expires_at")
+  createdAt              DateTime      @default(now()) @map("created_at")
+  updatedAt              DateTime      @updatedAt @map("updated_at")
+
+  casesCreated    Case[]           @relation("CaseCreator")
+  casesVerified   Case[]           @relation("CaseVerifier")
+  votes           Vote[]
+  caseUpdates     CaseUpdate[]
+  lawyerComments  LawyerComment[]
+  moderationLogs  ModerationLog[]  @relation("Performer")
+
+  @@map("users")
+}
+
+model Case {
+  id               String       @id @default(uuid())
+  title            String
+  description      String
+  category         CaseCategory
+  location         String
+  referenceNumber  String       @map("reference_number")
+  sourceUrl        String?      @map("source_url")
+  documents        String[]     @default([])
+  status           CaseStatus   @default(PENDING_REVIEW)
+  groundStatus     String?      @map("ground_status")
+  supportCount     Int          @default(0) @map("support_count")
+  opposeCount      Int          @default(0) @map("oppose_count")
+
+  createdById      String       @map("created_by")
+  createdBy        User         @relation("CaseCreator", fields: [createdById], references: [id])
+
+  verifiedById     String?      @map("verified_by")
+  verifiedBy       User?        @relation("CaseVerifier", fields: [verifiedById], references: [id])
+
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+
+  votes            Vote[]
+  updates          CaseUpdate[]
+  lawyerComments   LawyerComment[]
+
+  @@map("cases")
+}
+
+model Vote {
+  id        String   @id @default(uuid())
+  voteType  VoteType @map("vote_type")
+
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+
+  caseId    String   @map("case_id")
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, caseId])
+  @@map("votes")
+}
+
+model CaseUpdate {
+  id         String     @id @default(uuid())
+  updateText String     @map("update_text")
+  updateType UpdateType @map("update_type")
+
+  caseId     String     @map("case_id")
+  case       Case       @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  createdById String    @map("created_by")
+  createdBy   User      @relation(fields: [createdById], references: [id])
+
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  @@map("case_updates")
+}
+
+model LawyerComment {
+  id          String   @id @default(uuid())
+  explanation String
+
+  caseId      String   @map("case_id")
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  lawyerId    String   @map("lawyer_id")
+  lawyer      User     @relation(fields: [lawyerId], references: [id])
+
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("lawyer_comments")
+}
+
+model ModerationLog {
+  id           String           @id @default(uuid())
+  actionType   ModerationAction @map("action_type")
+  targetId     String           @map("target_id")
+  reason       String?
+
+  performedById String          @map("performed_by")
+  performedBy   User            @relation("Performer", fields: [performedById], references: [id])
+
+  createdAt    DateTime         @default(now()) @map("created_at")
+
+  @@map("moderation_logs")
+}

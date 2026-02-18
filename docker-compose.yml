@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: justicetrack-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-justicetrack}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-justicetrack_secret}
+      POSTGRES_DB: ${DB_NAME:-justicetrack}
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U justicetrack']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: justicetrack-server
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-justicetrack}:${DB_PASSWORD:-justicetrack_secret}@postgres:5432/${DB_NAME:-justicetrack}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_change_in_production}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-super_secret_refresh_key_change_in_production}
+      PORT: 4000
+      NODE_ENV: production
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    ports:
+      - '4000:4000'
+    volumes:
+      - uploads:/app/uploads
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: justicetrack-client
+    restart: unless-stopped
+    depends_on:
+      - server
+    environment:
+      NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:4000/api}
+    ports:
+      - '3000:3000'
+
+volumes:
+  pgdata:
+  uploads:
