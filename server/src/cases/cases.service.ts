@@ -29,6 +29,7 @@ export class CasesService {
                 location: this.sanitize(dto.location),
                 referenceNumber: dto.referenceNumber,
                 sourceUrl: dto.sourceUrl || null,
+                mainImage: dto.mainImage || null,
                 groundStatus: dto.groundStatus || null,
                 documents: filePaths,
                 createdById: userId,

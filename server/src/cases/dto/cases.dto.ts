@@ -28,6 +28,10 @@ export class CreateCaseDto {
     @IsOptional()
     @IsString()
     groundStatus?: string;
+
+    @IsOptional()
+    @IsString()
+    mainImage?: string;
 }
 
 export class UpdateCaseStatusDto {

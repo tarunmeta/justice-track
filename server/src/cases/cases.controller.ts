@@ -2,7 +2,7 @@ import {
     Controller, Get, Post, Patch, Param, Body, Query,
     UseGuards, Req, UseInterceptors, UploadedFiles, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator,
 } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor, FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { v4 as uuid } from 'uuid';
 import { extname } from 'path';
@@ -49,7 +49,10 @@ export class CasesController {
     // Protected endpoints
     @Post()
     @UseGuards(JwtAuthGuard)
-    @UseInterceptors(FilesInterceptor('documents', 5, { storage }))
+    @UseInterceptors(FileFieldsInterceptor([
+        { name: 'mainImage', maxCount: 1 },
+        { name: 'documents', maxCount: 5 },
+    ], { storage }))
     create(
         @Body() dto: CreateCaseDto,
         @Req() req: any,
@@ -61,10 +64,13 @@ export class CasesController {
                 ],
                 fileIsRequired: false,
             }),
-        ) files?: Express.Multer.File[],
+        ) files?: { mainImage?: Express.Multer.File[], documents?: Express.Multer.File[] },
     ) {
-        const filePaths = files?.map((f) => `/uploads/documents/${f.filename}`) || [];
-        return this.casesService.create(dto, req.user.sub, filePaths);
+        const mainImagePath = files?.mainImage?.[0] ? `/uploads/documents/${files.mainImage[0].filename}` : null;
+        const documentPaths = files?.documents?.map((f) => `/uploads/documents/${f.filename}`) || [];
+
+        dto.mainImage = mainImagePath;
+        return this.casesService.create(dto, req.user.sub, documentPaths);
     }
 
     @Patch(':id/status')

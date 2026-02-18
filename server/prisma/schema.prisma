@@ -109,6 +109,7 @@ model Case {
   location         String
   referenceNumber  String       @map("reference_number")
   sourceUrl        String?      @map("source_url")
+  mainImage        String?      @map("main_image")
   documents        String[]     @default([])
   status           CaseStatus   @default(PENDING_REVIEW)
   groundStatus     String?      @map("ground_status")
