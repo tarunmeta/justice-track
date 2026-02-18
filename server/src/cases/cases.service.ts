@@ -10,9 +10,15 @@ export class CasesService {
 
     async create(dto: CreateCaseDto, userId: string, filePaths: string[] = []) {
         // Validate reference number format (FIR, Court Case, or URL must be present)
-        if (!this.isValidReference(dto.referenceNumber) && !dto.sourceUrl) {
+        if (!dto.referenceNumber && !dto.sourceUrl) {
             throw new BadRequestException(
                 'A valid FIR Number, Court Case Number, or verified News Source URL is required',
+            );
+        }
+
+        if (dto.referenceNumber && !this.isValidReference(dto.referenceNumber) && !dto.sourceUrl) {
+            throw new BadRequestException(
+                'The provided reference number format is invalid',
             );
         }
 
@@ -27,7 +33,7 @@ export class CasesService {
                 description: this.sanitize(dto.description),
                 category: dto.category,
                 location: this.sanitize(dto.location),
-                referenceNumber: dto.referenceNumber,
+                referenceNumber: dto.referenceNumber || null,
                 sourceUrl: dto.sourceUrl || null,
                 mainImage: dto.mainImage || null,
                 groundStatus: dto.groundStatus || null,

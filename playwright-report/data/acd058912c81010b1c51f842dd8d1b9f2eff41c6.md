@@ -1,0 +1,94 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link "JusticeTrack" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img [ref=e6]
+        - generic [ref=e10]: JusticeTrack
+      - generic [ref=e11]:
+        - link "Home" [ref=e12] [cursor=pointer]:
+          - /url: /
+        - link "Cases" [ref=e13] [cursor=pointer]:
+          - /url: /cases
+      - generic [ref=e14]:
+        - button "Toggle theme" [ref=e15] [cursor=pointer]:
+          - img [ref=e16]
+        - generic [ref=e18]:
+          - link "Login" [ref=e19] [cursor=pointer]:
+            - /url: /auth/login
+          - link "Register" [ref=e20] [cursor=pointer]:
+            - /url: /auth/register
+  - main [ref=e21]:
+    - generic [ref=e25]:
+      - generic [ref=e26]:
+        - img [ref=e28]
+        - heading "Create Account" [level=1] [ref=e32]
+        - paragraph [ref=e33]: Join JusticeTrack to track and engage with verified cases
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - generic [ref=e36]: Full Name
+          - generic [ref=e37]:
+            - img [ref=e38]
+            - textbox "John Doe" [ref=e41]: QA Master Tester
+        - generic [ref=e42]:
+          - generic [ref=e43]: Email
+          - generic [ref=e44]:
+            - img [ref=e45]
+            - textbox "you@example.com" [ref=e48]: master_1771408488700@example.com
+        - generic [ref=e49]:
+          - generic [ref=e50]: Password
+          - generic [ref=e51]:
+            - img [ref=e52]
+            - textbox "Minimum 8 characters" [ref=e55]: Password123!
+            - button [ref=e56] [cursor=pointer]:
+              - img [ref=e57]
+        - generic [ref=e60]:
+          - generic [ref=e61]: Confirm Password
+          - generic [ref=e62]:
+            - img [ref=e63]
+            - textbox "Repeat your password" [ref=e66]: Password123!
+        - generic [ref=e67]:
+          - generic [ref=e68]: Are you a Lawyer?
+          - combobox [ref=e69]:
+            - option "No, Public Contributor" [selected]
+            - option "Yes, Legal Professional"
+        - generic [ref=e70]:
+          - checkbox [checked] [ref=e71]
+          - generic [ref=e72]:
+            - text: I accept the
+            - link "Terms of Service" [ref=e73] [cursor=pointer]:
+              - /url: /terms
+            - text: and
+            - link "Privacy Policy" [ref=e74] [cursor=pointer]:
+              - /url: /privacy
+        - button "Create Account" [ref=e75] [cursor=pointer]:
+          - text: Create Account
+          - img [ref=e76]
+      - paragraph [ref=e78]:
+        - text: Already have an account?
+        - link "Sign In" [ref=e79] [cursor=pointer]:
+          - /url: /auth/login
+  - contentinfo [ref=e80]:
+    - generic [ref=e81]:
+      - generic [ref=e82]:
+        - generic [ref=e83]:
+          - heading "JusticeTrack" [level=3] [ref=e84]
+          - paragraph [ref=e85]: Transparent Legal Tracking for Public Accountability. All cases must reference official records.
+        - generic [ref=e86]:
+          - heading "Legal Disclaimer" [level=4] [ref=e87]
+          - paragraph [ref=e88]: JusticeTrack is an informational platform. All cases are sourced from official records and verified media. This platform does not make any allegations or declare anyone guilty. Content is moderated and subject to legal review.
+        - generic [ref=e89]:
+          - heading "Links" [level=4] [ref=e90]
+          - generic [ref=e91]:
+            - link "About" [ref=e92] [cursor=pointer]:
+              - /url: /about
+            - link "Browse Cases" [ref=e93] [cursor=pointer]:
+              - /url: /cases
+            - link "Contact" [ref=e94] [cursor=pointer]:
+              - /url: /contact
+      - generic [ref=e95]: © 2026 JusticeTrack. All rights reserved.
+  - alert [ref=e96]
+```

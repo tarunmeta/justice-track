@@ -50,6 +50,22 @@ test.describe('Phase 5 & 6: Case Lifecycle', () => {
         await expect(page.locator('text=Case submitted for review!')).toBeVisible();
     });
 
+    test('5.2 Valid Case Submission (News URL Only)', async ({ page }) => {
+        await page.goto('/cases/create');
+
+        const caseTitle = `News Only Case - ${Date.now()}`;
+        await page.fill('#case-title', caseTitle);
+        await page.fill('#case-description', 'Case submitted with only a verified news source URL. No FIR number provided.');
+        await page.selectOption('#case-category', 'PUBLIC_SAFETY');
+        await page.fill('#case-location', 'Bangalore, India');
+
+        // Leave reference number empty
+        await page.fill('#source-url', 'https://timesofindia.indiatimes.com/city/bangalore/example-news');
+
+        await page.click('button:has-text("Submit for Review")');
+        await expect(page.locator('text=Case submitted for review!')).toBeVisible();
+    });
+
     test('6.1 Moderator Approval Flow', async ({ page }) => {
         const caseTitle = `Mod-Test Case - ${Date.now()}`;
         await page.goto('/cases/create');

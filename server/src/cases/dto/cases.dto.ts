@@ -27,11 +27,11 @@ export class CreateCaseDto {
     location: string;
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     @MinLength(3)
     @MaxLength(50)
     @Transform(({ value }) => value?.trim())
-    referenceNumber: string;
+    referenceNumber?: string;
 
     @IsOptional()
     @IsUrl()

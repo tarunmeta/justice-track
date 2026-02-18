@@ -52,8 +52,13 @@ test.describe('JusticeTrack Master E2E Flow', () => {
         await page.fill('#case-description', 'Detailed factual description for the master E2E verification suite. This is to ensure accountability and transparency.');
         await page.fill('#case-location', 'Mumbai, India');
         await page.fill('#reference-number', `MASTER/FIR/${Date.now()}`);
+
+        // Check the legal disclaimer
+        await page.locator('#legal-affirmation').click();
+        await page.waitForTimeout(500);
+
         await page.click('button:has-text("Submit for Review")');
-        await expect(page.locator('text=Case submitted for review!')).toBeVisible();
+        await expect(page.locator('text=Case submitted for review!')).toBeVisible({ timeout: 15000 });
 
         // PHASE 6: MODERATOR FLOW
         const { execSync } = require('child_process');

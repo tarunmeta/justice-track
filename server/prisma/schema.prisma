@@ -107,7 +107,7 @@ model Case {
   description      String
   category         CaseCategory
   location         String
-  referenceNumber  String       @map("reference_number")
+  referenceNumber  String?      @map("reference_number")
   sourceUrl        String?      @map("source_url")
   mainImage        String?      @map("main_image")
   documents        String[]     @default([])
