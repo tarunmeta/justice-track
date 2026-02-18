@@ -99,47 +99,43 @@ export default function CreateCasePage() {
                         <h2 className="font-semibold text-lg flex items-center gap-2">
                             <Camera className="w-5 h-5" /> Main Case Photo
                         </h2>
-                        <label
-                            className="relative block aspect-video rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-800 cursor-pointer overflow-hidden transition-all bg-gray-50/50 dark:bg-gray-900/10 hover:border-blue-500 hover:bg-blue-50/30"
+                        <div
+                            className="relative aspect-video rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center overflow-hidden transition-all bg-gray-50/50 dark:bg-gray-900/10"
                         >
-                            <input
-                                type="file"
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                style={{ pointerEvents: 'auto' }}
-                                accept="image/*"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                        if (file.size > 5 * 1024 * 1024) return toast.error('Photo must be less than 5MB');
-                                        setMainImage(file);
-                                        setMainImagePreview(URL.createObjectURL(file));
-                                    }
-                                }}
-                            />
                             {mainImagePreview ? (
-                                <>
+                                <div className="relative w-full h-full group">
                                     <img src={mainImagePreview} alt="Preview" className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                    <div
+                                        onClick={(e) => { e.stopPropagation(); mainImageRef.current?.click(); }}
+                                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                    >
                                         <p className="text-white text-sm font-medium">Click to change photo</p>
                                     </div>
-                                </>
+                                </div>
                             ) : (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 pointer-events-none">
+                                <div
+                                    onClick={() => mainImageRef.current?.click()}
+                                    className="text-center p-6 cursor-pointer hover:bg-blue-50/30 w-full h-full flex flex-col items-center justify-center"
+                                >
                                     <ImageIcon className="w-10 h-10 mx-auto mb-2 text-gray-400" />
                                     <p className="text-sm font-medium">Upload a primary photo for this case</p>
                                     <p className="text-xs text-gray-500 mt-1 mb-4">This will be shown in the case list</p>
-                                    <div className="btn-secondary py-2 px-4 text-xs pointer-events-auto">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); mainImageRef.current?.click(); }}
+                                        className="btn-secondary py-2 px-4 text-xs"
+                                    >
                                         Select Photo
-                                    </div>
+                                    </button>
                                 </div>
                             )}
-                        </label>
+                        </div>
                     </div>
 
                     <div className="card p-6 space-y-4">
                         <h2 className="font-semibold text-lg">Case Details</h2>
 
-                        <div>
+                        <div className="relative z-10">
                             <label htmlFor="case-title" className="block text-sm font-medium mb-1.5">Case Title *</label>
                             <input
                                 id="case-title"
@@ -152,7 +148,7 @@ export default function CreateCasePage() {
                             />
                         </div>
 
-                        <div>
+                        <div className="relative z-10">
                             <label htmlFor="case-description" className="block text-sm font-medium mb-1.5 flex items-center gap-2">
                                 Case Description * <FileText className="w-3.5 h-3.5 text-gray-400" />
                             </label>
@@ -250,29 +246,10 @@ export default function CreateCasePage() {
 
                         <div>
                             <label className="block text-sm font-medium mb-1.5">Supporting Documents (PDF/Images)</label>
-                            <label
-                                className="relative block border-2 border-dashed rounded-xl p-8 text-center bg-gray-50/50 dark:bg-gray-900/10 cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all"
+                            <div
+                                onClick={() => fileInputRef.current?.click()}
+                                className="border-2 border-dashed rounded-xl p-8 text-center bg-gray-50/50 dark:bg-gray-900/10 cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all"
                             >
-                                <input
-                                    type="file"
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                    style={{ pointerEvents: 'auto' }}
-                                    multiple
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                    onChange={(e) => {
-                                        const selectedFiles = e.target.files;
-                                        if (selectedFiles) {
-                                            const validFiles = Array.from(selectedFiles).filter(file => {
-                                                if (file.size > 5 * 1024 * 1024) {
-                                                    toast.error(`${file.name} is too large (max 5MB)`);
-                                                    return false;
-                                                }
-                                                return true;
-                                            });
-                                            setFiles(selectedFiles);
-                                        }
-                                    }}
-                                />
                                 <div className="pointer-events-none">
                                     <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto mb-3">
                                         <Upload className="w-6 h-6 text-blue-600" />
@@ -280,11 +257,15 @@ export default function CreateCasePage() {
                                     <p className="text-sm font-medium mb-1">Upload supporting documents</p>
                                     <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>PDF, JPG, PNG — Max 5MB each</p>
 
-                                    <div className="btn-secondary py-2 px-6 text-xs pointer-events-auto">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                                        className="btn-secondary py-2 px-6 text-xs pointer-events-auto"
+                                    >
                                         Select Files
-                                    </div>
+                                    </button>
                                 </div>
-                            </label>
+                            </div>
                             {files && (
                                 <div className="mt-2 space-y-1">
                                     {Array.from(files).map((f, i) => (
@@ -300,6 +281,34 @@ export default function CreateCasePage() {
                     </div>
 
                     <LegalDisclaimer checked={legalChecked} onCheckedChange={setLegalChecked} />
+
+                    <div className="hidden">
+                        <input
+                            type="file"
+                            ref={mainImageRef}
+                            accept="image/*"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                    if (file.size > 5 * 1024 * 1024) return toast.error('Photo must be less than 5MB');
+                                    setMainImage(file);
+                                    setMainImagePreview(URL.createObjectURL(file));
+                                }
+                            }}
+                        />
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            multiple
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={(e) => {
+                                const selectedFiles = e.target.files;
+                                if (selectedFiles) {
+                                    setFiles(selectedFiles);
+                                }
+                            }}
+                        />
+                    </div>
 
                     <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 text-base disabled:opacity-70 disabled:cursor-not-allowed">
                         {loading ? (
