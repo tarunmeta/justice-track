@@ -1,0 +1,55 @@
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPrismaModule dependencies initialized[39m[38;5;3m +38ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mThrottlerModule dependencies initialized[39m[38;5;3m +13ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +1ms[39m
+[Nest] 5720  - 18/02/2026, 11:22:59 am   ERROR [MailService] CRITICAL: RESEND_API_KEY is missing. Email service will not work.
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMailModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsersModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCasesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mVotesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mModerationModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAnalyticsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/api/auth}:[39m[38;5;3m +48ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/register, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/verify-otp, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/resend-otp, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/login, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/refresh, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/logout, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mUsersController {/api/users}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/users/profile, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/users, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/users/stats, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/users/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/users/:id/role, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/users/:id/status, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCasesController {/api/cases}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/cases, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/cases/trending, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/cases/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/cases, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/cases/:id/status, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/cases/:id/updates, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/cases/:id/lawyer-comments, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/cases/moderation/all, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mVotesController {/api/votes}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/votes/:caseId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/votes/:caseId, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/votes/:caseId, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mModerationController {/api/moderation}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/moderation/logs, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/moderation/cases/:id/approve, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/moderation/cases/:id/reject, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/moderation/cases/:id/flag, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/moderation/users/:id/suspend, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/moderation/users/:id/ban, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/moderation/users/:id/unsuspend, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAnalyticsController {/api/analytics}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/analytics/dashboard, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 5720  - [39m18/02/2026, 11:22:59 am [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +109ms[39m
+≡ƒÜÇ JusticeTrack API running on port 4000

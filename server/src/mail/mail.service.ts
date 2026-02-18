@@ -9,13 +9,18 @@ export class MailService {
 
     constructor(private configService: ConfigService) {
         const apiKey = this.configService.get<string>('RESEND_API_KEY');
-        if (!apiKey) {
-            this.logger.error('CRITICAL: RESEND_API_KEY is missing in environment variables');
+        if (apiKey) {
+            this.resend = new Resend(apiKey);
+        } else {
+            this.logger.error('CRITICAL: RESEND_API_KEY is missing. Email service will not work.');
         }
-        this.resend = new Resend(apiKey);
     }
 
     async sendOtp(email: string, otp: string): Promise<void> {
+        if (!this.resend) {
+            this.logger.error('Resend client not initialized. Cannot send OTP.');
+            throw new Error('Email service is currently unavailable.');
+        }
         const from = this.configService.get<string>('MAIL_FROM', 'onboarding@resend.dev');
 
         try {
