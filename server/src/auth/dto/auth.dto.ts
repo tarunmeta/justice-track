@@ -41,3 +41,9 @@ export class RefreshTokenDto {
     @IsNotEmpty()
     refreshToken: string;
 }
+
+export class ResendOtpDto {
+    @IsEmail()
+    @MaxLength(100)
+    email: string;
+}

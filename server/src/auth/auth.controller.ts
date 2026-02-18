@@ -1,7 +1,7 @@
 import { Controller, Post, Body, UseGuards, Req, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Throttle } from '@nestjs/throttler';
-import { RegisterDto, LoginDto, VerifyOtpDto, RefreshTokenDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, VerifyOtpDto, RefreshTokenDto, ResendOtpDto } from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
@@ -18,6 +18,13 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     verifyOtp(@Body() dto: VerifyOtpDto) {
         return this.authService.verifyOtp(dto);
+    }
+
+    @Post('resend-otp')
+    @HttpCode(HttpStatus.OK)
+    @Throttle({ default: { limit: 3, ttl: 60000 } })
+    resendOtp(@Body() dto: ResendOtpDto) {
+        return this.authService.resendOtp(dto);
     }
 
     @Post('login')

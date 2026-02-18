@@ -2,13 +2,15 @@ import { Injectable, UnauthorizedException, ConflictException, BadRequestExcepti
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
-import { RegisterDto, LoginDto, VerifyOtpDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, VerifyOtpDto, ResendOtpDto } from './dto/auth.dto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
     constructor(
         private prisma: PrismaService,
         private jwtService: JwtService,
+        private mailService: MailService,
     ) { }
 
     async register(dto: RegisterDto) {
@@ -30,7 +32,16 @@ export class AuthService {
             },
         });
 
-        // In production, send OTP via email. For dev, return it.
+        // Send OTP via email
+        try {
+            await this.mailService.sendOtp(dto.email, otpCode);
+        } catch (error) {
+            // Log but don't block registration for now (optional design choice)
+            // Or throw if email delivery is critical
+            console.error(`Mail delivery failed for ${dto.email}`);
+        }
+
+        // In production, don't log OTP in console. For dev, log it.
         if (process.env.NODE_ENV !== 'production') {
             console.log(`[DEV] OTP for ${dto.email}: ${otpCode}`);
         }
@@ -128,6 +139,33 @@ export class AuthService {
                 status: user.status,
             },
         };
+    }
+
+    async resendOtp(dto: ResendOtpDto) {
+        const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+        if (!user) throw new BadRequestException('User not found');
+        if (user.status !== 'PENDING') throw new BadRequestException('Account is already verified or restricted');
+
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+        await this.prisma.user.update({
+            where: { id: user.id },
+            data: {
+                otpCode,
+                otpExpiresAt,
+                otpAttempts: 0,
+            },
+        });
+
+        try {
+            await this.mailService.sendOtp(user.email, otpCode);
+        } catch (error) {
+            console.error(`Resend mail failed for ${dto.email}`);
+            throw new BadRequestException('Failed to send verification email. Please try again later.');
+        }
+
+        return { message: 'Verification code resent successfully' };
     }
 
     async refreshTokens(userId: string, refreshToken: string) {
