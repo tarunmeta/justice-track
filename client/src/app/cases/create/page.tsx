@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { FileText, Upload, MapPin, Hash, Link2, AlertTriangle, ArrowRight } from 'lucide-react';
+import { FileText, Upload, MapPin, Hash, Link2, AlertTriangle, ArrowRight, Paperclip, Camera, Image as ImageIcon } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { CATEGORY_LABELS } from '@/lib/utils';
@@ -18,8 +18,12 @@ export default function CreateCasePage() {
         title: '', description: '', category: 'OTHER',
         location: '', referenceNumber: '', sourceUrl: '', groundStatus: '',
     });
+    const [mainImage, setMainImage] = useState<File | null>(null);
+    const [mainImagePreview, setMainImagePreview] = useState<string>('');
     const [files, setFiles] = useState<FileList | null>(null);
     const [legalChecked, setLegalChecked] = useState(false);
+    const mainImageRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     if (!isAuthenticated) {
         return (
@@ -52,6 +56,7 @@ export default function CreateCasePage() {
         try {
             const formData = new FormData();
             Object.entries(form).forEach(([k, v]) => { if (v) formData.append(k, v); });
+            if (mainImage) formData.append('mainImage', mainImage);
             if (files) Array.from(files).forEach((f) => formData.append('documents', f));
 
             await api.post('/cases', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -89,37 +94,112 @@ export default function CreateCasePage() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Main Photo Section */}
+                    <div className="card p-6 space-y-4">
+                        <h2 className="font-semibold text-lg flex items-center gap-2">
+                            <Camera className="w-5 h-5" /> Main Case Photo
+                        </h2>
+                        <div className="relative aspect-video rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center overflow-hidden transition-all bg-gray-50/50 dark:bg-gray-900/10">
+                            {mainImagePreview ? (
+                                <>
+                                    <img src={mainImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => mainImageRef.current?.click()}
+                                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                                    >
+                                        <p className="text-white text-sm font-medium">Click to change photo</p>
+                                    </button>
+                                </>
+                            ) : (
+                                <div className="text-center p-6">
+                                    <ImageIcon className="w-10 h-10 mx-auto mb-2 text-gray-400" />
+                                    <p className="text-sm font-medium">Upload a primary photo for this case</p>
+                                    <p className="text-xs text-gray-500 mt-1 mb-4">This will be shown in the case list</p>
+                                    <button
+                                        type="button"
+                                        onClick={() => mainImageRef.current?.click()}
+                                        className="btn-secondary py-2 px-4 text-xs"
+                                    >
+                                        Select Photo
+                                    </button>
+                                </div>
+                            )}
+                            <input
+                                type="file"
+                                ref={mainImageRef}
+                                className="hidden"
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        if (file.size > 5 * 1024 * 1024) return toast.error('Photo must be less than 5MB');
+                                        setMainImage(file);
+                                        setMainImagePreview(URL.createObjectURL(file));
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+
                     <div className="card p-6 space-y-4">
                         <h2 className="font-semibold text-lg">Case Details</h2>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">Case Title *</label>
-                            <input className="input-field" placeholder="Brief, factual case title" value={form.title}
-                                onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+                            <label htmlFor="case-title" className="block text-sm font-medium mb-1.5">Case Title *</label>
+                            <input
+                                id="case-title"
+                                type="text"
+                                className="input-field"
+                                placeholder="Brief, factual case title"
+                                value={form.title}
+                                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                                required
+                            />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">Description *</label>
-                            <textarea className="textarea-field" rows={5} placeholder="Detailed factual description of the case..."
-                                value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
+                            <label htmlFor="case-description" className="block text-sm font-medium mb-1.5 flex items-center gap-2">
+                                Case Description * <FileText className="w-3.5 h-3.5 text-gray-400" />
+                            </label>
+                            <textarea
+                                id="case-description"
+                                className="textarea-field"
+                                rows={5}
+                                placeholder="Detailed factual description of the case..."
+                                value={form.description}
+                                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                required
+                            />
                         </div>
 
                         <div className="grid sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1.5">Category *</label>
-                                <select className="input-field" value={form.category}
-                                    onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                                <label htmlFor="case-category" className="block text-sm font-medium mb-1.5">Category *</label>
+                                <select
+                                    id="case-category"
+                                    className="input-field"
+                                    value={form.category}
+                                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                                >
                                     {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
                                         <option key={k} value={k}>{v}</option>
                                     ))}
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1.5">Location *</label>
+                                <label htmlFor="case-location" className="block text-sm font-medium mb-1.5">Location *</label>
                                 <div className="relative">
                                     <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                                    <input className="input-field pl-10" placeholder="City, State" value={form.location}
-                                        onChange={(e) => setForm({ ...form, location: e.target.value })} required />
+                                    <input
+                                        id="case-location"
+                                        type="text"
+                                        className="input-field pl-10"
+                                        placeholder="City, State"
+                                        value={form.location}
+                                        onChange={(e) => setForm({ ...form, location: e.target.value })}
+                                        required
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -129,20 +209,32 @@ export default function CreateCasePage() {
                         <h2 className="font-semibold text-lg">Official References (at least one required)</h2>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">FIR / Court Case Number</label>
+                            <label htmlFor="reference-number" className="block text-sm font-medium mb-1.5">FIR / Court Case Number</label>
                             <div className="relative">
                                 <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                                <input className="input-field pl-10" placeholder="e.g. FIR/2024/DL/00789 or WP(C) 123/2024"
-                                    value={form.referenceNumber} onChange={(e) => setForm({ ...form, referenceNumber: e.target.value })} />
+                                <input
+                                    id="reference-number"
+                                    type="text"
+                                    className="input-field pl-10"
+                                    placeholder="e.g. FIR/2024/DL/00789 or WP(C) 123/2024"
+                                    value={form.referenceNumber}
+                                    onChange={(e) => setForm({ ...form, referenceNumber: e.target.value })}
+                                />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">Verified News Source URL</label>
+                            <label htmlFor="source-url" className="block text-sm font-medium mb-1.5">Verified News Source URL</label>
                             <div className="relative">
                                 <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                                <input className="input-field pl-10" type="url" placeholder="https://news-source.com/article"
-                                    value={form.sourceUrl} onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })} />
+                                <input
+                                    id="source-url"
+                                    className="input-field pl-10"
+                                    type="url"
+                                    placeholder="https://news-source.com/article"
+                                    value={form.sourceUrl}
+                                    onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })}
+                                />
                             </div>
                         </div>
                     </div>
@@ -151,22 +243,40 @@ export default function CreateCasePage() {
                         <h2 className="font-semibold text-lg">Supporting Information</h2>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">Ground Status Description</label>
-                            <textarea className="textarea-field" rows={3} placeholder="Current ground-level situation..."
-                                value={form.groundStatus} onChange={(e) => setForm({ ...form, groundStatus: e.target.value })} />
+                            <label htmlFor="ground-status" className="block text-sm font-medium mb-1.5">Ground Status Description</label>
+                            <textarea
+                                id="ground-status"
+                                className="textarea-field"
+                                rows={3}
+                                placeholder="Current ground-level situation..."
+                                value={form.groundStatus}
+                                onChange={(e) => setForm({ ...form, groundStatus: e.target.value })}
+                            />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium mb-1.5">Supporting Documents (PDF/Images)</label>
-                            <div className="border-2 border-dashed rounded-xl p-6 text-center transition-colors hover:border-blue-400 relative">
-                                <Upload className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--text-muted)' }} />
-                                <p className="text-sm mb-1">Click or drag files to upload</p>
-                                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>PDF, JPG, PNG — Max 5MB each</p>
+                            <div className="border-2 border-dashed rounded-xl p-8 text-center bg-gray-50/50 dark:bg-gray-900/10">
+                                <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto mb-3">
+                                    <Upload className="w-6 h-6 text-blue-600" />
+                                </div>
+                                <p className="text-sm font-medium mb-1">Upload supporting documents</p>
+                                <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>PDF, JPG, PNG — Max 5MB each</p>
+
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="btn-secondary py-2 px-6 text-xs"
+                                >
+                                    Select Files
+                                </button>
+
                                 <input
                                     type="file"
+                                    ref={fileInputRef}
                                     multiple
                                     accept=".pdf,.jpg,.jpeg,.png"
-                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                    className="hidden"
                                     onChange={(e) => {
                                         const selectedFiles = e.target.files;
                                         if (selectedFiles) {
@@ -177,12 +287,6 @@ export default function CreateCasePage() {
                                                 }
                                                 return true;
                                             });
-
-                                            // Create a DataTransfer to assign back to files state if needed, 
-                                            // but React state handle FileList or array better.
-                                            // For simplicity here, just using state. 
-                                            // Note: FileList is read-only, so we can't easily filter it in place for the input.
-                                            // We'll rely on the state-based validation on submit.
                                             setFiles(selectedFiles);
                                         }
                                     }}

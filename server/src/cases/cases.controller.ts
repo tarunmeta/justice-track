@@ -56,17 +56,23 @@ export class CasesController {
     create(
         @Body() dto: CreateCaseDto,
         @Req() req: any,
-        @UploadedFiles(
-            new ParseFilePipe({
-                validators: [
-                    new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
-                    new FileTypeValidator({ fileType: /(jpg|jpeg|png|pdf)$/ }),
-                ],
-                fileIsRequired: false,
-            }),
-        ) files?: { mainImage?: Express.Multer.File[], documents?: Express.Multer.File[] },
+        @UploadedFiles() files?: { mainImage?: Express.Multer.File[], documents?: Express.Multer.File[] },
     ) {
-        const mainImagePath = files?.mainImage?.[0] ? `/uploads/documents/${files.mainImage[0].filename}` : null;
+        // Manual validation since ParseFilePipe can be tricky with FileFieldsInterceptor
+        if (files?.mainImage?.[0]) {
+            const file = files.mainImage[0];
+            if (file.size > 5 * 1024 * 1024) throw new Error('Main image too large');
+            if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) throw new Error('Invalid image type');
+        }
+
+        if (files?.documents) {
+            files.documents.forEach(file => {
+                if (file.size > 5 * 1024 * 1024) throw new Error('Document too large');
+                if (!file.mimetype.match(/\/(jpg|jpeg|png|pdf)$/)) throw new Error('Invalid document type');
+            });
+        }
+
+        const mainImagePath = files?.mainImage?.[0] ? `/uploads/documents/${files.mainImage[0].filename}` : undefined;
         const documentPaths = files?.documents?.map((f) => `/uploads/documents/${f.filename}`) || [];
 
         dto.mainImage = mainImagePath;

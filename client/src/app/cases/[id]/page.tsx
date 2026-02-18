@@ -38,14 +38,28 @@ export default function CaseDetailPage() {
         if (!isAuthenticated) return toast.error('Please login to vote');
         setVoting(true);
         try {
-            await api.post(`/votes/${id}`, { voteType: type });
-            setUserVote(type);
-            setCaseData((prev: any) => ({
-                ...prev,
-                supportCount: prev.supportCount + (type === 'SUPPORT' ? 1 : (userVote === 'SUPPORT' ? -1 : 0)),
-                opposeCount: prev.opposeCount + (type === 'OPPOSE' ? 1 : (userVote === 'OPPOSE' ? -1 : 0)),
-            }));
-            toast.success('Vote recorded');
+            if (userVote === type) {
+                // Toggle off
+                await api.delete(`/votes/${id}`);
+                setUserVote(null);
+                setCaseData((prev: any) => ({
+                    ...prev,
+                    supportCount: prev.supportCount - (type === 'SUPPORT' ? 1 : 0),
+                    opposeCount: prev.opposeCount - (type === 'OPPOSE' ? 1 : 0),
+                }));
+                toast.success('Vote removed');
+            } else {
+                // Add or change vote
+                await api.post(`/votes/${id}`, { voteType: type });
+                const oldVote = userVote;
+                setUserVote(type);
+                setCaseData((prev: any) => ({
+                    ...prev,
+                    supportCount: prev.supportCount + (type === 'SUPPORT' ? 1 : (oldVote === 'SUPPORT' ? -1 : 0)),
+                    opposeCount: prev.opposeCount + (type === 'OPPOSE' ? 1 : (oldVote === 'OPPOSE' ? -1 : 0)),
+                }));
+                toast.success('Vote recorded');
+            }
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Failed to vote');
         } finally {
@@ -169,24 +183,24 @@ export default function CaseDetailPage() {
                                 <button
                                     onClick={() => handleVote('SUPPORT')}
                                     disabled={voting}
-                                    className={`flex flex-col items-center gap-1 p-4 rounded-xl border-2 transition-all ${userVote === 'SUPPORT' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-transparent hover:border-gray-200'
+                                    className={`flex flex-col items-center gap-1 p-4 rounded-xl border-2 transition-all ${userVote === 'SUPPORT' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 shadow-inner' : 'border-transparent hover:border-emerald-200'
                                         }`}
                                     style={{ background: userVote !== 'SUPPORT' ? 'var(--bg-secondary)' : undefined }}
                                 >
-                                    <ThumbsUp className={`w-6 h-6 ${userVote === 'SUPPORT' ? 'text-emerald-600' : ''}`} />
-                                    <span className="text-xl font-bold">{c.supportCount}</span>
-                                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Support</span>
+                                    <ThumbsUp className={`w-6 h-6 transition-transform ${userVote === 'SUPPORT' ? 'text-emerald-600 scale-110' : 'text-gray-400 group-hover:text-emerald-500'}`} />
+                                    <span className={`text-xl font-bold ${userVote === 'SUPPORT' ? 'text-emerald-700' : ''}`}>{c.supportCount}</span>
+                                    <span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: userVote === 'SUPPORT' ? 'var(--text-primary)' : 'var(--text-muted)' }}>Support</span>
                                 </button>
                                 <button
                                     onClick={() => handleVote('OPPOSE')}
                                     disabled={voting}
-                                    className={`flex flex-col items-center gap-1 p-4 rounded-xl border-2 transition-all ${userVote === 'OPPOSE' ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'border-transparent hover:border-gray-200'
+                                    className={`flex flex-col items-center gap-1 p-4 rounded-xl border-2 transition-all ${userVote === 'OPPOSE' ? 'border-red-500 bg-red-50 dark:bg-red-900/20 shadow-inner' : 'border-transparent hover:border-red-200'
                                         }`}
                                     style={{ background: userVote !== 'OPPOSE' ? 'var(--bg-secondary)' : undefined }}
                                 >
-                                    <ThumbsDown className={`w-6 h-6 ${userVote === 'OPPOSE' ? 'text-red-600' : ''}`} />
-                                    <span className="text-xl font-bold">{c.opposeCount}</span>
-                                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Oppose</span>
+                                    <ThumbsDown className={`w-6 h-6 transition-transform ${userVote === 'OPPOSE' ? 'text-red-600 scale-110' : 'text-gray-400 group-hover:text-red-500'}`} />
+                                    <span className={`text-xl font-bold ${userVote === 'OPPOSE' ? 'text-red-700' : ''}`}>{c.opposeCount}</span>
+                                    <span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: userVote === 'OPPOSE' ? 'var(--text-primary)' : 'var(--text-muted)' }}>Oppose</span>
                                 </button>
                             </div>
                             <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>One vote per user per case</p>
