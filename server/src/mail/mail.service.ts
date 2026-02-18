@@ -18,6 +18,7 @@ export class MailService implements OnModuleInit {
             connectionTimeout: 10000,
             greetingTimeout: 10000,
             socketTimeout: 20000,
+            family: 4, // Force IPv4 to avoid ENETUNREACH on Render's IPv6
         });
     }
 
