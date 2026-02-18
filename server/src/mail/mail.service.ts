@@ -14,15 +14,23 @@ export class MailService implements OnModuleInit {
         const user = process.env.MAIL_USER;
         const pass = process.env.MAIL_PASS;
 
+        // Default to Port 465 (SSL/TLS) if not specified, as Port 587 is often blocked on cloud.
+        const port = parseInt(process.env.MAIL_PORT || '465');
+        const secure = process.env.MAIL_SECURE ? process.env.MAIL_SECURE === 'true' : (port === 465);
+
         this.transporter = nodemailer.createTransport({
             host: process.env.MAIL_HOST || 'smtp.gmail.com',
-            port: parseInt(process.env.MAIL_PORT || '587'),
-            secure: process.env.MAIL_SECURE === 'true',
+            port,
+            secure,
             auth: { user, pass },
-            connectionTimeout: 10000,
+            connectionTimeout: 10000, // 10s
             greetingTimeout: 10000,
-            socketTimeout: 20000,
-            family: 4, // Force IPv4 to avoid ENETUNREACH on Render's IPv6
+            socketTimeout: 15000,
+            family: 4,
+            tls: {
+                // Do not fail on invalid certs (common requirement for some relays)
+                rejectUnauthorized: false
+            }
         } as SMTPTransport.Options);
     }
 
