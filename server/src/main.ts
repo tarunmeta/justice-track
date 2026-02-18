@@ -12,10 +12,10 @@ async function bootstrap() {
     // Security
     app.use(helmet());
 
-    // CORS - supports comma-separated origins for multiple environments
+    // CORS - supports comma-separated origins, stripping trailing slashes for robustness
     const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
         .split(',')
-        .map((o) => o.trim());
+        .map((o) => o.trim().replace(/\/$/, ''));
     app.enableCors({
         origin: allowedOrigins,
         credentials: true,
