@@ -1,8 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
-import * as dns from 'dns';
-
-dns.setDefaultResultOrder('ipv4first');
 
 @Injectable()
 export class MailService implements OnModuleInit {
@@ -19,34 +16,32 @@ export class MailService implements OnModuleInit {
             connectionTimeout: 15000,
             greetingTimeout: 15000,
             socketTimeout: 30000,
-            family: 4,
+            family: 4, // Force IPv4
             tls: { rejectUnauthorized: false }
         };
 
-        // If it's Gmail, use the service preset which is more reliable on cloud
         if (host.includes('gmail.com')) {
-            (transportOptions as any).service = 'gmail';
+            transportOptions.service = 'gmail';
         } else {
             transportOptions.host = host;
             transportOptions.port = parseInt(process.env.MAIL_PORT || '465');
-            transportOptions.secure = process.env.MAIL_SECURE ? process.env.MAIL_SECURE === 'true' : (transportOptions.port === 465);
+            transportOptions.secure = transportOptions.port === 465;
         }
 
-        this.logger.debug(`Initializing MailService with host: ${host}, service: ${(transportOptions as any).service || 'custom'}`);
-        this.transporter = nodemailer.createTransport(transportOptions as any);
+        this.transporter = nodemailer.createTransport(transportOptions);
     }
 
     async onModuleInit() {
         if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
-            this.logger.error('CRITICAL: SMTP credentials (MAIL_USER/MAIL_PASS) are missing.');
+            this.logger.error('CRITICAL: SMTP credentials missing.');
             return;
         }
 
         try {
             await this.transporter.verify();
-            this.logger.log('SMTP server connection verified successfully.');
+            this.logger.log('SMTP connection verified successfully.');
         } catch (error) {
-            this.logger.error('SMTP verification failed. Check your MAIL_USER/MAIL_PASS or App Password settings.', error.message);
+            this.logger.error('SMTP verification failed. Check App Password.', error.message);
         }
     }
 
@@ -59,23 +54,35 @@ export class MailService implements OnModuleInit {
                 <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
                     <h2 style="color: #4f46e5; text-align: center;">Welcome to JusticeTrack</h2>
                     <p>Hello,</p>
-                    <p>Thank you for joining our platform. Please use the following verification code to complete your registration:</p>
+                    <p>Please use the following verification code to complete your registration:</p>
                     <div style="text-align: center; margin: 30px 0;">
                         <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #1e293b; background: #f1f5f9; padding: 10px 20px; border-radius: 5px;">${otp}</span>
                     </div>
-                    <p>This code will expire in 10 minutes. If you did not request this code, please ignore this email.</p>
+                    <p>This code will expire in 10 minutes.</p>
                     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
                     <p style="font-size: 12px; color: #64748b; text-align: center;">&copy; 2024 JusticeTrack. All rights reserved.</p>
                 </div>
             `,
         };
 
-        try {
-            await this.transporter.sendMail(mailOptions);
-            this.logger.log(`OTP successfully sent to ${email}`);
-        } catch (error) {
-            this.logger.error(`Failed to send OTP to ${email}: ${error.message}`);
-            throw error;
+        let attempts = 0;
+        const maxRetries = 3;
+
+        while (attempts < maxRetries) {
+            try {
+                attempts++;
+                await this.transporter.sendMail(mailOptions);
+                this.logger.log(`OTP successfully sent to ${email} (Attempt ${attempts})`);
+                return;
+            } catch (error) {
+                this.logger.warn(`Failed to send OTP to ${email} (Attempt ${attempts}/${maxRetries}): ${error.message}`);
+                if (attempts >= maxRetries) {
+                    this.logger.error(`Critical: All ${maxRetries} attempts failed for ${email}`);
+                    throw error;
+                }
+                // Wait 2 seconds before retry
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
         }
     }
 }
