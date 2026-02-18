@@ -1,24 +1,24 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileText, MapPin, Hash, Link2, AlertTriangle, Camera, Image as ImageIcon } from 'lucide-react';
+import { MapPin, Hash, Link2, AlertTriangle } from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
-import { CATEGORY_LABELS } from '@/lib/utils';
+import { CATEGORY_LABELS, CATEGORY_ICONS } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { LegalDisclaimer } from '@/components/legal-disclaimer';
+import FileUpload from '@/components/file-upload';
 
 /**
- * VERSION: HYPER_ISOLATION_V4
- * - NO labels.
- * - NO IDs on inputs.
- * - NO framer-motion in the form area.
- * - File inputs are literally outside the main container div.
- * - Diagnostic banner added.
+ * VERSION: DEFINITIVE_SENIOR_FIX_V5
+ * - Uses modular FileUpload component.
+ * - Standard <label> and <input id="..."> pattern (Safe naming).
+ * - Explicit stopPropagation on input clicks.
+ * - Cleaned layout following user's "Senior Engineer" advice.
  */
 export default function CreateCasePage() {
-    console.log("RENDERED: CreateCasePage [HYPER ISOLATION V4]");
+    console.log("RENDERED: CreateCasePage [DEFINITIVE SENIOR FIX V5]");
 
     const router = useRouter();
     const { isAuthenticated } = useAuthStore();
@@ -29,11 +29,9 @@ export default function CreateCasePage() {
     });
     const [mainImage, setMainImage] = useState<File | null>(null);
     const [mainImagePreview, setMainImagePreview] = useState<string>('');
-    const [files, setFiles] = useState<FileList | null>(null);
+    const [supportingDocs, setSupportingDocs] = useState<FileList | null>(null);
     const [legalChecked, setLegalChecked] = useState(false);
     const [hydrated, setHydrated] = useState(false);
-    const mainImageRef = useRef<HTMLInputElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         setHydrated(true);
@@ -63,7 +61,7 @@ export default function CreateCasePage() {
             const formData = new FormData();
             Object.entries(form).forEach(([k, v]) => { if (v) formData.append(k, v); });
             if (mainImage) formData.append('mainImage', mainImage);
-            if (files) Array.from(files).forEach((f) => formData.append('documents', f));
+            if (supportingDocs) Array.from(supportingDocs).forEach((f) => formData.append('documents', f));
 
             await api.post('/cases', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
             toast.success('Case submitted for review!');
@@ -75,11 +73,16 @@ export default function CreateCasePage() {
         }
     };
 
+    const handleInputClick = (e: React.MouseEvent) => {
+        // Stop any bubbling that might trigger an invisible label or file input
+        e.stopPropagation();
+    };
+
     return (
-        <div className="min-h-screen bg-[var(--bg-primary)]">
+        <div className="min-h-screen bg-[var(--bg-primary)] pb-20">
             {/* DIAGNOSTIC BANNER */}
-            <div className="bg-blue-600 text-white text-[10px] py-1 text-center font-mono">
-                DIAGNOSTIC: HYPER_ISOLATION_V4_ACTIVE
+            <div className="bg-emerald-600 text-white text-[10px] py-1 text-center font-mono sticky top-16 z-[60]">
+                ACTIVE VERSION: DEFINITIVE_SENIOR_FIX_V5
             </div>
 
             <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
@@ -88,41 +91,47 @@ export default function CreateCasePage() {
                     <p className="text-sm text-[var(--text-secondary)] mt-1">Provide factual details and official references.</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* CASE DETAILS */}
-                    <div className="bg-[var(--bg-card)] rounded-xl border p-6 space-y-4">
-                        <div className="text-lg font-semibold border-b pb-2 mb-4">Case Details</div>
+                <form onSubmit={handleSubmit} className="space-y-6" onClick={(e) => e.stopPropagation()}>
+                    {/* CASE DETAILS SECTION */}
+                    <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-6 space-y-6">
+                        <div className="text-lg font-semibold border-b border-[var(--border)] pb-3 mb-2">Case Details</div>
 
                         <div>
-                            <div className="text-sm font-medium mb-1.5">Case Title *</div>
+                            <label htmlFor="field-case-title" className="block text-sm font-medium mb-1.5 cursor-pointer">Case Title *</label>
                             <input
+                                id="field-case-title"
                                 type="text"
                                 className="input-field"
                                 placeholder="Brief, factual case title"
                                 value={form.title}
                                 onChange={(e) => setForm({ ...form, title: e.target.value })}
+                                onClick={handleInputClick}
                                 required
                             />
                         </div>
 
                         <div>
-                            <div className="text-sm font-medium mb-1.5">Description *</div>
+                            <label htmlFor="field-case-desc" className="block text-sm font-medium mb-1.5 cursor-pointer">Description *</label>
                             <textarea
-                                className="textarea-field min-h-[150px]"
+                                id="field-case-desc"
+                                className="textarea-field min-h-[160px]"
                                 placeholder="Detailed factual description of the case..."
                                 value={form.description}
                                 onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                onClick={handleInputClick}
                                 required
                             />
                         </div>
 
-                        <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="grid sm:grid-cols-2 gap-6">
                             <div>
-                                <div className="text-sm font-medium mb-1.5">Category *</div>
+                                <label htmlFor="field-case-cat" className="block text-sm font-medium mb-1.5 cursor-pointer">Category *</label>
                                 <select
-                                    className="input-field"
+                                    id="field-case-cat"
+                                    className="input-field cursor-pointer"
                                     value={form.category}
                                     onChange={(e) => setForm({ ...form, category: e.target.value })}
+                                    onClick={handleInputClick}
                                 >
                                     {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
                                         <option key={k} value={k}>{v}</option>
@@ -130,15 +139,17 @@ export default function CreateCasePage() {
                                 </select>
                             </div>
                             <div>
-                                <div className="text-sm font-medium mb-1.5">Location *</div>
+                                <label htmlFor="field-case-loc" className="block text-sm font-medium mb-1.5 cursor-pointer">Location *</label>
                                 <div className="relative">
                                     <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                     <input
+                                        id="field-case-loc"
                                         type="text"
                                         className="input-field pl-10"
                                         placeholder="City, State"
                                         value={form.location}
                                         onChange={(e) => setForm({ ...form, location: e.target.value })}
+                                        onClick={handleInputClick}
                                         required
                                     />
                                 </div>
@@ -146,88 +157,88 @@ export default function CreateCasePage() {
                         </div>
                     </div>
 
-                    {/* REFERENCES */}
-                    <div className="bg-[var(--bg-card)] rounded-xl border p-6 space-y-4">
-                        <div className="text-lg font-semibold border-b pb-2 mb-4">Verification References</div>
-                        <div>
-                            <div className="text-sm font-medium mb-1.5">FIR / Case ID</div>
-                            <div className="relative">
-                                <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                                <input
-                                    type="text"
-                                    className="input-field pl-10"
-                                    placeholder="e.g., FIR/123/2024"
-                                    value={form.referenceNumber}
-                                    onChange={(e) => setForm({ ...form, referenceNumber: e.target.value })}
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <div className="text-sm font-medium mb-1.5">News Source URL</div>
-                            <div className="relative">
-                                <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                                <input
-                                    type="url"
-                                    className="input-field pl-10"
-                                    placeholder="https://..."
-                                    value={form.sourceUrl}
-                                    onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })}
-                                />
-                            </div>
-                        </div>
-                    </div>
+                    {/* VERIFICATION REFERENCES SECTION */}
+                    <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-6 space-y-6">
+                        <div className="text-lg font-semibold border-b border-[var(--border)] pb-3 mb-2">Verification References</div>
 
-                    {/* MEDIA */}
-                    <div className="bg-[var(--bg-card)] rounded-xl border p-6 space-y-5">
-                        <div className="text-lg font-semibold border-b pb-2 mb-4">Evidence & Media</div>
-                        <div>
-                            <div className="text-sm font-medium mb-3">Main Cover Photo (Optional)</div>
-                            <div className="aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center bg-gray-50/50 dark:bg-gray-900/10 overflow-hidden relative">
-                                {mainImagePreview ? (
-                                    <>
-                                        <img src={mainImagePreview} alt="Preview" className="w-full h-full object-cover" />
-                                        <button type="button" onClick={() => mainImageRef.current?.click()} className="absolute bottom-4 right-4 btn-secondary text-xs">Change Photo</button>
-                                    </>
-                                ) : (
-                                    <div className="text-center p-6">
-                                        <ImageIcon className="w-10 h-10 mx-auto mb-3 text-gray-400" />
-                                        <button type="button" onClick={() => mainImageRef.current?.click()} className="btn-secondary text-xs">Select Case Photo</button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        <div>
-                            <div className="text-sm font-medium mb-3">Supporting Documents</div>
-                            <div className="border rounded-xl p-6 bg-gray-50/50 dark:bg-gray-900/10 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <FileText className="w-5 h-5 text-gray-400" />
-                                    <span className="text-sm">Add PDF or Images (Max 5MB)</span>
+                        <div className="grid sm:grid-cols-2 gap-6">
+                            <div>
+                                <label htmlFor="field-case-ref" className="block text-sm font-medium mb-1.5 cursor-pointer">FIR / Case ID</label>
+                                <div className="relative">
+                                    <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                    <input
+                                        id="field-case-ref"
+                                        type="text"
+                                        className="input-field pl-10"
+                                        placeholder="e.g., FIR/123/2024"
+                                        value={form.referenceNumber}
+                                        onChange={(e) => setForm({ ...form, referenceNumber: e.target.value })}
+                                        onClick={handleInputClick}
+                                    />
                                 </div>
-                                <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-secondary text-xs">Browse Files</button>
+                            </div>
+                            <div>
+                                <label htmlFor="field-case-url" className="block text-sm font-medium mb-1.5 cursor-pointer">News Source URL</label>
+                                <div className="relative">
+                                    <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                    <input
+                                        id="field-case-url"
+                                        type="url"
+                                        className="input-field pl-10"
+                                        placeholder="https://..."
+                                        value={form.sourceUrl}
+                                        onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })}
+                                        onClick={handleInputClick}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <LegalDisclaimer checked={legalChecked} onCheckedChange={setLegalChecked} />
+                    {/* MEDIA & EVIDENCE SECTION */}
+                    <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] p-6 space-y-6">
+                        <div className="text-lg font-semibold border-b border-[var(--border)] pb-3 mb-2">Evidence & Media</div>
 
-                    <button type="submit" disabled={loading} className="btn-primary w-full py-4 text-lg disabled:opacity-50">
-                        {loading ? 'Submitting Case...' : 'Submit Case'}
+                        <div className="grid gap-8">
+                            <FileUpload
+                                label="Main Case Photo (Recommended)"
+                                preview={mainImagePreview}
+                                onSelect={(files) => {
+                                    const file = files?.[0];
+                                    if (file) {
+                                        if (file.size > 5 * 1024 * 1024) return toast.error('Photo exceeds 5MB');
+                                        setMainImage(file);
+                                        setMainImagePreview(URL.createObjectURL(file));
+                                    }
+                                }}
+                            />
+
+                            <FileUpload
+                                label="Supporting Documents (Optional)"
+                                multiple
+                                accept=".pdf,.jpg,.jpeg,.png"
+                                placeholderIcon="file"
+                                onSelect={(files) => setSupportingDocs(files)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* LEGAL DISCLAIMER */}
+                    <div className="pt-4" onClick={handleInputClick}>
+                        <LegalDisclaimer
+                            checked={legalChecked}
+                            onCheckedChange={setLegalChecked}
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="btn-primary w-full py-4 text-lg shadow-xl shadow-blue-500/20 disabled:opacity-50 transition-all active:scale-[0.98]"
+                    >
+                        {loading ? 'Submitting Case...' : 'Submit Case Officialy'}
                     </button>
                 </form>
-            </div>
-
-            {/* COMPLETELY DETACHED FILE INPUTS */}
-            <div style={{ display: 'none', visibility: 'hidden', pointerEvents: 'none' }}>
-                <input type="file" ref={mainImageRef} accept="image/*" onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file && file.size <= 5 * 1024 * 1024) {
-                        setMainImage(file);
-                        setMainImagePreview(URL.createObjectURL(file));
-                    } else if (file) toast.error('Photo exceeds 5MB');
-                }} />
-                <input type="file" ref={fileInputRef} multiple accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => {
-                    if (e.target.files) setFiles(e.target.files);
-                }} />
             </div>
         </div>
     );
