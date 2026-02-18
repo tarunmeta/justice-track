@@ -5,7 +5,7 @@ import { AppModule } from './../src/app.module';
 
 describe('Cases (e2e) - Field Hardening Test', () => {
     let app: INestApplication;
-    let authToken: string;
+    let authToken: string = '';
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
