@@ -99,36 +99,13 @@ export default function CreateCasePage() {
                         <h2 className="font-semibold text-lg flex items-center gap-2">
                             <Camera className="w-5 h-5" /> Main Case Photo
                         </h2>
-                        <div
-                            onClick={() => mainImageRef.current?.click()}
-                            className="relative aspect-video rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all bg-gray-50/50 dark:bg-gray-900/10 hover:border-blue-500 hover:bg-blue-50/30"
+                        <label
+                            className="relative block aspect-video rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-800 cursor-pointer overflow-hidden transition-all bg-gray-50/50 dark:bg-gray-900/10 hover:border-blue-500 hover:bg-blue-50/30"
                         >
-                            {mainImagePreview ? (
-                                <>
-                                    <img src={mainImagePreview} alt="Preview" className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                        <p className="text-white text-sm font-medium">Click to change photo</p>
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="text-center p-6">
-                                    <ImageIcon className="w-10 h-10 mx-auto mb-2 text-gray-400" />
-                                    <p className="text-sm font-medium">Upload a primary photo for this case</p>
-                                    <p className="text-xs text-gray-500 mt-1 mb-4">This will be shown in the case list</p>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); mainImageRef.current?.click(); }}
-                                        className="btn-secondary py-2 px-4 text-xs"
-                                    >
-                                        Select Photo
-                                    </button>
-                                </div>
-                            )}
                             <input
-                                id="main-image-upload"
                                 type="file"
-                                ref={mainImageRef}
-                                style={{ display: 'none' }}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                style={{ pointerEvents: 'auto' }}
                                 accept="image/*"
                                 onChange={(e) => {
                                     const file = e.target.files?.[0];
@@ -139,7 +116,24 @@ export default function CreateCasePage() {
                                     }
                                 }}
                             />
-                        </div>
+                            {mainImagePreview ? (
+                                <>
+                                    <img src={mainImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                        <p className="text-white text-sm font-medium">Click to change photo</p>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 pointer-events-none">
+                                    <ImageIcon className="w-10 h-10 mx-auto mb-2 text-gray-400" />
+                                    <p className="text-sm font-medium">Upload a primary photo for this case</p>
+                                    <p className="text-xs text-gray-500 mt-1 mb-4">This will be shown in the case list</p>
+                                    <div className="btn-secondary py-2 px-4 text-xs pointer-events-auto">
+                                        Select Photo
+                                    </div>
+                                </div>
+                            )}
+                        </label>
                     </div>
 
                     <div className="card p-6 space-y-4">
@@ -256,29 +250,13 @@ export default function CreateCasePage() {
 
                         <div>
                             <label className="block text-sm font-medium mb-1.5">Supporting Documents (PDF/Images)</label>
-                            <div
-                                onClick={() => fileInputRef.current?.click()}
-                                className="border-2 border-dashed rounded-xl p-8 text-center bg-gray-50/50 dark:bg-gray-900/10 cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all"
+                            <label
+                                className="relative block border-2 border-dashed rounded-xl p-8 text-center bg-gray-50/50 dark:bg-gray-900/10 cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all"
                             >
-                                <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto mb-3">
-                                    <Upload className="w-6 h-6 text-blue-600" />
-                                </div>
-                                <p className="text-sm font-medium mb-1">Upload supporting documents</p>
-                                <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>PDF, JPG, PNG — Max 5MB each</p>
-
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                                    className="btn-secondary py-2 px-6 text-xs"
-                                >
-                                    Select Files
-                                </button>
-
                                 <input
-                                    id="documents-upload"
                                     type="file"
-                                    ref={fileInputRef}
-                                    style={{ display: 'none' }}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    style={{ pointerEvents: 'auto' }}
                                     multiple
                                     accept=".pdf,.jpg,.jpeg,.png"
                                     onChange={(e) => {
@@ -295,7 +273,18 @@ export default function CreateCasePage() {
                                         }
                                     }}
                                 />
-                            </div>
+                                <div className="pointer-events-none">
+                                    <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto mb-3">
+                                        <Upload className="w-6 h-6 text-blue-600" />
+                                    </div>
+                                    <p className="text-sm font-medium mb-1">Upload supporting documents</p>
+                                    <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>PDF, JPG, PNG — Max 5MB each</p>
+
+                                    <div className="btn-secondary py-2 px-6 text-xs pointer-events-auto">
+                                        Select Files
+                                    </div>
+                                </div>
+                            </label>
                             {files && (
                                 <div className="mt-2 space-y-1">
                                     {Array.from(files).map((f, i) => (
