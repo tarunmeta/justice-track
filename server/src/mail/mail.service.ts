@@ -7,14 +7,21 @@ export class MailService {
     private readonly logger = new Logger(MailService.name);
 
     constructor() {
+        const user = process.env.MAIL_USER;
+        const pass = process.env.MAIL_PASS;
+
+        if (!user || !pass) {
+            this.logger.warn('SMTP credentials missing. OTP emails will fail to send.');
+        }
+
         this.transporter = nodemailer.createTransport({
             host: process.env.MAIL_HOST || 'smtp.gmail.com',
             port: parseInt(process.env.MAIL_PORT || '587'),
-            secure: process.env.MAIL_SECURE === 'true', // true for 465, false for other ports
-            auth: {
-                user: process.env.MAIL_USER,
-                pass: process.env.MAIL_PASS,
-            },
+            secure: process.env.MAIL_SECURE === 'true',
+            auth: { user, pass },
+            connectionTimeout: 5000, // 5 seconds
+            greetingTimeout: 5000,
+            socketTimeout: 10000, // 10 seconds total
         });
     }
 
