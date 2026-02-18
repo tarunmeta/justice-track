@@ -36,7 +36,7 @@ services:
         fromService:
           type: web
           name: justicetrack-client
-          property: host
+          property: url
 
   # 3. Client (Next.js Frontend)
   - type: web
@@ -52,7 +52,7 @@ services:
         fromService:
           type: web
           name: justicetrack-api
-          property: host
+          property: url
         suffix: /api
       - key: NODE_ENV
         value: production
