@@ -2,6 +2,9 @@
   "name": "justicetrack-server",
   "version": "1.0.0",
   "description": "JusticeTrack Backend API - NestJS",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "private": true,
   "scripts": {
     "build": "nest build",
