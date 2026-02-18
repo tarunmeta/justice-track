@@ -15,22 +15,42 @@ export class AuthService {
 
     async register(dto: RegisterDto) {
         const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
-        if (existing) throw new ConflictException('Email already registered');
+
+        if (existing) {
+            if (existing.status !== 'PENDING') {
+                throw new ConflictException('Email already registered');
+            }
+            // If pending, we allow them to "re-register" to get a new code
+        }
 
         const passwordHash = await bcrypt.hash(dto.password, 12);
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
 
-        const user = await this.prisma.user.create({
-            data: {
-                name: dto.name,
-                email: dto.email,
-                passwordHash,
-                otpCode,
-                otpExpiresAt,
-                otpAttempts: 0,
-            },
-        });
+        let user;
+        if (existing) {
+            user = await this.prisma.user.update({
+                where: { id: existing.id },
+                data: {
+                    name: dto.name,
+                    passwordHash,
+                    otpCode,
+                    otpExpiresAt,
+                    otpAttempts: 0,
+                },
+            });
+        } else {
+            user = await this.prisma.user.create({
+                data: {
+                    name: dto.name,
+                    email: dto.email,
+                    passwordHash,
+                    otpCode,
+                    otpExpiresAt,
+                    otpAttempts: 0,
+                },
+            });
+        }
 
         // Send OTP via email
         try {
