@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, ForbiddenException 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCaseDto } from './dto/cases.dto';
 import { CaseStatus, Prisma } from '@prisma/client';
+import * as sanitizeHtml from 'sanitize-html';
 
 @Injectable()
 export class CasesService {
@@ -197,7 +198,10 @@ export class CasesService {
     }
 
     private sanitize(text: string): string {
-        return text.replace(/<[^>]*>/g, '').trim();
+        return sanitizeHtml(text, {
+            allowedTags: [], // No HTML allowed
+            allowedAttributes: {},
+        }).trim();
     }
 
     private containsAbusiveContent(text: string): boolean {

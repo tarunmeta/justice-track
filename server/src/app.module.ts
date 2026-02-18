@@ -11,7 +11,18 @@ import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
     imports: [
-        ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
+        ThrottlerModule.forRoot([
+            {
+                name: 'short',
+                ttl: 1000,
+                limit: 3,
+            },
+            {
+                name: 'long',
+                ttl: 60000,
+                limit: 100,
+            },
+        ]),
         PrismaModule,
         AuthModule,
         UsersModule,

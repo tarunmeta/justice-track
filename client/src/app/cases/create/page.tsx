@@ -8,6 +8,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { CATEGORY_LABELS } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { LegalDisclaimer } from '@/components/legal-disclaimer';
 
 export default function CreateCasePage() {
     const router = useRouter();
@@ -18,6 +19,7 @@ export default function CreateCasePage() {
         location: '', referenceNumber: '', sourceUrl: '', groundStatus: '',
     });
     const [files, setFiles] = useState<FileList | null>(null);
+    const [legalChecked, setLegalChecked] = useState(false);
 
     if (!isAuthenticated) {
         return (
@@ -34,6 +36,17 @@ export default function CreateCasePage() {
         e.preventDefault();
         if (!form.referenceNumber && !form.sourceUrl) {
             return toast.error('At least one reference (FIR Number, Case Number, or News URL) is required');
+        }
+        if (!legalChecked) {
+            return toast.error('You must agree to the legal declaration');
+        }
+
+        // Client-side file validation
+        if (files) {
+            const oversizeFiles = Array.from(files).some(f => f.size > 5 * 1024 * 1024);
+            if (oversizeFiles) {
+                return toast.error('Some files exceed the 5MB limit. Please remove them.');
+            }
         }
         setLoading(true);
         try {
@@ -145,18 +158,43 @@ export default function CreateCasePage() {
 
                         <div>
                             <label className="block text-sm font-medium mb-1.5">Supporting Documents (PDF/Images)</label>
-                            <div className="border-2 border-dashed rounded-xl p-6 text-center transition-colors hover:border-blue-400">
+                            <div className="border-2 border-dashed rounded-xl p-6 text-center transition-colors hover:border-blue-400 relative">
                                 <Upload className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--text-muted)' }} />
                                 <p className="text-sm mb-1">Click or drag files to upload</p>
-                                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>PDF, JPG, PNG — Max 5 files</p>
-                                <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png" className="absolute inset-0 opacity-0 cursor-pointer"
-                                    onChange={(e) => setFiles(e.target.files)} />
+                                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>PDF, JPG, PNG — Max 5MB each</p>
+                                <input
+                                    type="file"
+                                    multiple
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                    onChange={(e) => {
+                                        const selectedFiles = e.target.files;
+                                        if (selectedFiles) {
+                                            const validFiles = Array.from(selectedFiles).filter(file => {
+                                                if (file.size > 5 * 1024 * 1024) {
+                                                    toast.error(`${file.name} is too large (max 5MB)`);
+                                                    return false;
+                                                }
+                                                return true;
+                                            });
+
+                                            // Create a DataTransfer to assign back to files state if needed, 
+                                            // but React state handle FileList or array better.
+                                            // For simplicity here, just using state. 
+                                            // Note: FileList is read-only, so we can't easily filter it in place for the input.
+                                            // We'll rely on the state-based validation on submit.
+                                            setFiles(selectedFiles);
+                                        }
+                                    }}
+                                />
                             </div>
                             {files && (
                                 <div className="mt-2 space-y-1">
                                     {Array.from(files).map((f, i) => (
                                         <div key={i} className="flex items-center gap-2 text-xs p-2 rounded-lg" style={{ background: 'var(--bg-secondary)' }}>
-                                            <FileText className="w-3.5 h-3.5" /> {f.name}
+                                            <FileText className="w-3.5 h-3.5" />
+                                            <span className={f.size > 5 * 1024 * 1024 ? "text-red-500 line-through" : ""}>{f.name}</span>
+                                            <span className="text-muted-foreground ml-auto">{(f.size / 1024 / 1024).toFixed(2)} MB</span>
                                         </div>
                                     ))}
                                 </div>
@@ -164,14 +202,18 @@ export default function CreateCasePage() {
                         </div>
                     </div>
 
-                    <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 text-base">
+                    <LegalDisclaimer checked={legalChecked} onCheckedChange={setLegalChecked} />
+
+                    <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 text-base disabled:opacity-70 disabled:cursor-not-allowed">
                         {loading ? (
-                            <span className="flex items-center gap-2">
+                            <span className="flex items-center justify-center gap-2">
                                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                 Submitting...
                             </span>
                         ) : (
-                            <>Submit for Review <ArrowRight className="w-4 h-4" /></>
+                            <span className="flex items-center justify-center gap-2">
+                                Submit for Review <ArrowRight className="w-4 h-4" />
+                            </span>
                         )}
                     </button>
                 </form>

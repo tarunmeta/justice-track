@@ -1,6 +1,6 @@
 import {
     Controller, Get, Post, Patch, Param, Body, Query,
-    UseGuards, Req, UseInterceptors, UploadedFiles,
+    UseGuards, Req, UseInterceptors, UploadedFiles, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -53,7 +53,15 @@ export class CasesController {
     create(
         @Body() dto: CreateCaseDto,
         @Req() req: any,
-        @UploadedFiles() files?: Express.Multer.File[],
+        @UploadedFiles(
+            new ParseFilePipe({
+                validators: [
+                    new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
+                    new FileTypeValidator({ fileType: /(jpg|jpeg|png|pdf)$/ }),
+                ],
+                fileIsRequired: false,
+            }),
+        ) files?: Express.Multer.File[],
     ) {
         const filePaths = files?.map((f) => `/uploads/documents/${f.filename}`) || [];
         return this.casesService.create(dto, req.user.sub, filePaths);

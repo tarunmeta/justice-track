@@ -26,31 +26,47 @@ export class AuthService {
                 passwordHash,
                 otpCode,
                 otpExpiresAt,
+                otpAttempts: 0,
             },
         });
 
         // In production, send OTP via email. For dev, return it.
-        console.log(`[DEV] OTP for ${dto.email}: ${otpCode}`);
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`[DEV] OTP for ${dto.email}: ${otpCode}`);
+        }
 
         return {
             message: 'Registration successful. Please verify your email with the OTP sent.',
             userId: user.id,
             // DEV ONLY: remove in production
-            devOtp: process.env.NODE_ENV === 'development' ? otpCode : undefined,
+            devOtp: process.env.NODE_ENV !== 'production' ? otpCode : undefined,
         };
     }
 
     async verifyOtp(dto: VerifyOtpDto) {
         const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
         if (!user) throw new BadRequestException('User not found');
+
         if (user.status === 'VERIFIED') return { message: 'Already verified' };
         if (!user.otpCode || !user.otpExpiresAt) throw new BadRequestException('No OTP pending');
+
+        if (user.otpAttempts >= 5) {
+            throw new BadRequestException('Too many failed attempts. Please request a new OTP.');
+        }
+
         if (new Date() > user.otpExpiresAt) throw new BadRequestException('OTP expired');
-        if (user.otpCode !== dto.otp) throw new BadRequestException('Invalid OTP');
+
+        if (user.otpCode !== dto.otp) {
+            await this.prisma.user.update({
+                where: { id: user.id },
+                data: { otpAttempts: { increment: 1 } },
+            });
+            throw new BadRequestException(`Invalid OTP. ${5 - (user.otpAttempts + 1)} attempts remaining.`);
+        }
 
         await this.prisma.user.update({
             where: { id: user.id },
-            data: { status: 'VERIFIED', otpCode: null, otpExpiresAt: null },
+            data: { status: 'VERIFIED', otpCode: null, otpExpiresAt: null, otpAttempts: 0 },
         });
 
         return { message: 'Email verified successfully' };
@@ -60,8 +76,31 @@ export class AuthService {
         const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
         if (!user) throw new UnauthorizedException('Invalid credentials');
 
+        // Check for account lockout
+        if (user.lockoutUntil && new Date() < user.lockoutUntil) {
+            const minutesLeft = Math.ceil((user.lockoutUntil.getTime() - Date.now()) / 60000);
+            throw new UnauthorizedException(`Account is locked. Please try again in ${minutesLeft} minutes.`);
+        }
+
         const valid = await bcrypt.compare(dto.password, user.passwordHash);
-        if (!valid) throw new UnauthorizedException('Invalid credentials');
+
+        if (!valid) {
+            const newAttempts = user.failedLoginAttempts + 1;
+            const lockoutUntil = newAttempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null;
+
+            await this.prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    failedLoginAttempts: newAttempts,
+                    lockoutUntil,
+                },
+            });
+
+            if (lockoutUntil) {
+                throw new UnauthorizedException('Too many failed attempts. Account locked for 15 minutes.');
+            }
+            throw new UnauthorizedException(`Invalid credentials. ${5 - newAttempts} attempts remaining.`);
+        }
 
         if (user.status === 'PENDING') throw new UnauthorizedException('Please verify your email first');
         if (user.status === 'SUSPENDED' || user.status === 'BANNED')
@@ -71,7 +110,11 @@ export class AuthService {
 
         await this.prisma.user.update({
             where: { id: user.id },
-            data: { refreshToken: await bcrypt.hash(tokens.refreshToken, 10) },
+            data: {
+                refreshToken: await bcrypt.hash(tokens.refreshToken, 10),
+                failedLoginAttempts: 0,
+                lockoutUntil: null,
+            },
         });
 
         return {

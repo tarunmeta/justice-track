@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { json } from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
@@ -11,6 +12,7 @@ async function bootstrap() {
 
     // Security
     app.use(helmet());
+    app.use(json({ limit: '1mb' }));
 
     // CORS - supports comma-separated origins, stripping trailing slashes for robustness
     const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
