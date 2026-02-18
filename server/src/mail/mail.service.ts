@@ -1,6 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
-import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import * as dns from 'dns';
 
 dns.setDefaultResultOrder('ipv4first');
@@ -15,7 +14,7 @@ export class MailService implements OnModuleInit {
         const pass = process.env.MAIL_PASS;
         const host = process.env.MAIL_HOST || 'smtp.gmail.com';
 
-        const transportOptions: SMTPTransport.Options = {
+        const transportOptions: any = {
             auth: { user, pass },
             connectionTimeout: 15000,
             greetingTimeout: 15000,
