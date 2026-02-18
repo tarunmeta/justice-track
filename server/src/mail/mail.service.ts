@@ -9,6 +9,7 @@ export class MailService {
 
     constructor(private configService: ConfigService) {
         const apiKey = this.configService.get<string>('BREVO_API_KEY');
+        this.logger.log(`Brevo API Key loaded: ${apiKey ? 'YES' : 'NO'}`);
 
         if (apiKey) {
             this.apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
@@ -54,8 +55,9 @@ export class MailService {
 
             const response = await this.apiInstance.sendTransacEmail(sendSmtpEmail);
             this.logger.log(`OTP successfully sent to ${email} | Message ID: ${response.body.messageId}`);
-        } catch (err) {
-            this.logger.error(`Failed to send OTP to ${email}: ${err.message}`);
+        } catch (err: any) {
+            const errorDetail = err?.response?.body || err?.response?.data || err.message;
+            this.logger.error(`Failed to send OTP to ${email}: ${JSON.stringify(errorDetail)}`);
             throw err;
         }
     }
