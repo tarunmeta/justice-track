@@ -13,25 +13,28 @@ export class MailService implements OnModuleInit {
     constructor() {
         const user = process.env.MAIL_USER;
         const pass = process.env.MAIL_PASS;
+        const host = process.env.MAIL_HOST || 'smtp.gmail.com';
 
-        // Default to Port 465 (SSL/TLS) if not specified, as Port 587 is often blocked on cloud.
-        const port = parseInt(process.env.MAIL_PORT || '465');
-        const secure = process.env.MAIL_SECURE ? process.env.MAIL_SECURE === 'true' : (port === 465);
-
-        this.transporter = nodemailer.createTransport({
-            host: process.env.MAIL_HOST || 'smtp.gmail.com',
-            port,
-            secure,
+        const transportOptions: SMTPTransport.Options = {
             auth: { user, pass },
-            connectionTimeout: 10000, // 10s
-            greetingTimeout: 10000,
-            socketTimeout: 15000,
+            connectionTimeout: 15000,
+            greetingTimeout: 15000,
+            socketTimeout: 30000,
             family: 4,
-            tls: {
-                // Do not fail on invalid certs (common requirement for some relays)
-                rejectUnauthorized: false
-            }
-        } as SMTPTransport.Options);
+            tls: { rejectUnauthorized: false }
+        };
+
+        // If it's Gmail, use the service preset which is more reliable on cloud
+        if (host.includes('gmail.com')) {
+            (transportOptions as any).service = 'gmail';
+        } else {
+            transportOptions.host = host;
+            transportOptions.port = parseInt(process.env.MAIL_PORT || '465');
+            transportOptions.secure = process.env.MAIL_SECURE ? process.env.MAIL_SECURE === 'true' : (transportOptions.port === 465);
+        }
+
+        this.logger.debug(`Initializing MailService with host: ${host}, service: ${(transportOptions as any).service || 'custom'}`);
+        this.transporter = nodemailer.createTransport(transportOptions);
     }
 
     async onModuleInit() {
