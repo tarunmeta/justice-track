@@ -1,6 +1,9 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import * as dns from 'dns';
+
+dns.setDefaultResultOrder('ipv4first');
 
 @Injectable()
 export class MailService implements OnModuleInit {
