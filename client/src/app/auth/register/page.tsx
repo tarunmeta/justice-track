@@ -11,7 +11,8 @@ import toast from 'react-hot-toast';
 export default function RegisterPage() {
     const router = useRouter();
     const [step, setStep] = useState<'register' | 'otp'>('register');
-    const [form, setForm] = useState({ name: '', email: '', password: '' });
+    const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', role: 'USER' });
+    const [termsAccepted, setTermsAccepted] = useState(false);
     const [otp, setOtp] = useState('');
     const [devOtp, setDevOtp] = useState('');
     const [showPw, setShowPw] = useState(false);
@@ -19,9 +20,20 @@ export default function RegisterPage() {
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (form.password !== form.confirmPassword) {
+            return toast.error('Passwords do not match');
+        }
+        if (!termsAccepted) {
+            return toast.error('You must accept the terms and conditions');
+        }
         setLoading(true);
         try {
-            const { data } = await api.post('/auth/register', form);
+            const { data } = await api.post('/auth/register', {
+                name: form.name,
+                email: form.email,
+                password: form.password,
+                role: form.role
+            });
             if (data.devOtp) setDevOtp(data.devOtp);
             toast.success('Registration successful! Please verify your email.');
             setStep('otp');
@@ -74,6 +86,8 @@ export default function RegisterPage() {
                                 <div className="relative">
                                     <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                                     <input
+                                        name="name"
+                                        id="register-name"
                                         type="text"
                                         className="input-field pl-10"
                                         placeholder="John Doe"
@@ -88,6 +102,8 @@ export default function RegisterPage() {
                                 <div className="relative">
                                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                                     <input
+                                        name="email"
+                                        id="register-email"
                                         type="email"
                                         className="input-field pl-10"
                                         placeholder="you@example.com"
@@ -102,6 +118,8 @@ export default function RegisterPage() {
                                 <div className="relative">
                                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                                     <input
+                                        name="password"
+                                        id="register-password"
                                         type={showPw ? 'text' : 'password'}
                                         className="input-field pl-10 pr-10"
                                         placeholder="Minimum 8 characters"
@@ -114,6 +132,45 @@ export default function RegisterPage() {
                                         {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
                                 </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1.5">Confirm Password</label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                                    <input
+                                        name="confirmPassword"
+                                        id="register-confirm-password"
+                                        type={showPw ? 'text' : 'password'}
+                                        className="input-field pl-10"
+                                        placeholder="Repeat your password"
+                                        value={form.confirmPassword}
+                                        onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1.5">Are you a Lawyer?</label>
+                                <select
+                                    className="input-field"
+                                    value={form.role}
+                                    onChange={(e) => setForm({ ...form, role: e.target.value })}
+                                >
+                                    <option value="USER">No, Public Contributor</option>
+                                    <option value="LAWYER">Yes, Legal Professional</option>
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-2 px-1">
+                                <input
+                                    type="checkbox"
+                                    id="legal-affirmation"
+                                    className="w-4 h-4 rounded border-gray-300"
+                                    checked={termsAccepted}
+                                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                                />
+                                <label htmlFor="terms" className="text-xs text-gray-600 dark:text-gray-400">
+                                    I accept the <Link href="/terms" className="text-blue-600 hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>
+                                </label>
                             </div>
                             <button type="submit" disabled={loading} className="btn-primary w-full py-3 mt-2">
                                 {loading ? (

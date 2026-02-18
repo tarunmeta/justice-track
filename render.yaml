@@ -1,0 +1,58 @@
+services:
+  # 1. Database (PostgreSQL)
+  - type: database
+    name: justicetrack-db
+    databaseName: justicetrack
+    user: postgres
+    plan: free
+
+  # 2. Server (NestJS API)
+  - type: web
+    name: justicetrack-api
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: server
+    buildCommand: npm install --legacy-peer-deps && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && npm run start:prod
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: justicetrack-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_EXPIRY
+        value: 15m
+      - key: JWT_REFRESH_EXPIRY
+        value: 7d
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: CORS_ORIGIN
+        fromService:
+          type: web
+          name: justicetrack-client
+          property: host
+
+  # 3. Client (Next.js Frontend)
+  - type: web
+    name: justicetrack-client
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: client
+    buildCommand: npm install --legacy-peer-deps && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: justicetrack-api
+          property: host
+        suffix: /api
+      - key: NODE_ENV
+        value: production

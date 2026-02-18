@@ -54,6 +54,8 @@ export default function LoginPage() {
                             <div className="relative">
                                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                                 <input
+                                    name="email"
+                                    id="login-email"
                                     type="email"
                                     className="input-field pl-10"
                                     placeholder="you@example.com"
@@ -69,6 +71,8 @@ export default function LoginPage() {
                             <div className="relative">
                                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                                 <input
+                                    name="password"
+                                    id="login-password"
                                     type={showPw ? 'text' : 'password'}
                                     className="input-field pl-10 pr-10"
                                     placeholder="••••••••"

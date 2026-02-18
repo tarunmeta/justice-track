@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { FileText, Upload, MapPin, Hash, Link2, AlertTriangle, ArrowRight, Paperclip, Camera, Image as ImageIcon } from 'lucide-react';
@@ -22,8 +22,27 @@ export default function CreateCasePage() {
     const [mainImagePreview, setMainImagePreview] = useState<string>('');
     const [files, setFiles] = useState<FileList | null>(null);
     const [legalChecked, setLegalChecked] = useState(false);
+    const [hydrated, setHydrated] = useState(false);
     const mainImageRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        // Hydration check: if no user in store but user in localStorage, wait for loadAuth
+        const savedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+        if (isAuthenticated || !savedUser) {
+            setHydrated(true);
+        } else {
+            // Give Providers/loadAuth 500ms to reconcile
+            const timer = setTimeout(() => setHydrated(true), 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [isAuthenticated]);
+
+    if (!hydrated) {
+        return <div className="min-h-screen flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        </div>;
+    }
 
     if (!isAuthenticated) {
         return (
