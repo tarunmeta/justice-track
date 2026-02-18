@@ -36,9 +36,8 @@ export class AuthService {
         try {
             await this.mailService.sendOtp(dto.email, otpCode);
         } catch (error) {
-            // Log but don't block registration for now (optional design choice)
-            // Or throw if email delivery is critical
-            console.error(`Mail delivery failed for ${dto.email}`);
+            console.error(`Mail delivery failed for ${dto.email}:`, error.message);
+            throw new BadRequestException('Failed to send verification email. Please check SMTP configuration or try again later.');
         }
 
         // In production, don't log OTP in console. For dev, log it.
