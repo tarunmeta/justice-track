@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
@@ -6,34 +7,38 @@ export class MailService implements OnModuleInit {
     private transporter: nodemailer.Transporter;
     private readonly logger = new Logger(MailService.name);
 
-    constructor() {
-        const user = process.env.MAIL_USER;
-        const pass = process.env.MAIL_PASS;
-        const host = process.env.MAIL_HOST || 'smtp.gmail.com';
+    constructor(private configService: ConfigService) {
+        const user = this.configService.get<string>('MAIL_USER');
+        const pass = this.configService.get<string>('MAIL_PASS');
+        const host = this.configService.get<string>('MAIL_HOST', 'smtp.gmail.com');
+        const port = this.configService.get<number>('MAIL_PORT', 465);
+        const secure = this.configService.get<boolean>('MAIL_SECURE', port === 465);
 
         const transportOptions: any = {
+            host,
+            port,
+            secure,
             auth: { user, pass },
-            connectionTimeout: 15000,
-            greetingTimeout: 15000,
-            socketTimeout: 30000,
-            family: 4, // Force IPv4
-            tls: { rejectUnauthorized: false }
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
+            family: 4, // Force IPv4 globally for this transporter
+            tls: {
+                rejectUnauthorized: false, // Prevents cert issues with some cloud proxies
+            },
         };
 
-        if (host.includes('gmail.com')) {
+        // Use 'gmail' service only if host is gmail and it's the standard port
+        if (host.includes('gmail.com') && !this.configService.get('MAIL_PORT')) {
             transportOptions.service = 'gmail';
-        } else {
-            transportOptions.host = host;
-            transportOptions.port = parseInt(process.env.MAIL_PORT || '465');
-            transportOptions.secure = transportOptions.port === 465;
         }
 
         this.transporter = nodemailer.createTransport(transportOptions);
     }
 
     async onModuleInit() {
-        if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
-            this.logger.error('CRITICAL: SMTP credentials missing.');
+        if (!this.configService.get('MAIL_USER') || !this.configService.get('MAIL_PASS')) {
+            this.logger.error('CRITICAL: SMTP credentials missing (MAIL_USER/MAIL_PASS).');
             return;
         }
 
@@ -41,13 +46,13 @@ export class MailService implements OnModuleInit {
             await this.transporter.verify();
             this.logger.log('SMTP connection verified successfully.');
         } catch (error) {
-            this.logger.error('SMTP verification failed. Check App Password.', error.message);
+            this.logger.error('SMTP verification failed. Check App Password or Port settings.', error.message);
         }
     }
 
     async sendOtp(email: string, otp: string) {
         const mailOptions = {
-            from: `"JusticeTrack" <${process.env.MAIL_FROM || process.env.MAIL_USER}>`,
+            from: `"JusticeTrack" <${this.configService.get('MAIL_FROM', this.configService.get('MAIL_USER'))}>`,
             to: email,
             subject: 'Your JusticeTrack Verification Code',
             html: `
@@ -59,8 +64,6 @@ export class MailService implements OnModuleInit {
                         <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #1e293b; background: #f1f5f9; padding: 10px 20px; border-radius: 5px;">${otp}</span>
                     </div>
                     <p>This code will expire in 10 minutes.</p>
-                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                    <p style="font-size: 12px; color: #64748b; text-align: center;">&copy; 2024 JusticeTrack. All rights reserved.</p>
                 </div>
             `,
         };
@@ -72,16 +75,12 @@ export class MailService implements OnModuleInit {
             try {
                 attempts++;
                 await this.transporter.sendMail(mailOptions);
-                this.logger.log(`OTP successfully sent to ${email} (Attempt ${attempts})`);
+                this.logger.log(`OTP sent to ${email} (Attempt ${attempts} successful)`);
                 return;
             } catch (error) {
-                this.logger.warn(`Failed to send OTP to ${email} (Attempt ${attempts}/${maxRetries}): ${error.message}`);
-                if (attempts >= maxRetries) {
-                    this.logger.error(`Critical: All ${maxRetries} attempts failed for ${email}`);
-                    throw error;
-                }
-                // Wait 2 seconds before retry
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                this.logger.warn(`Email fail (Attempt ${attempts}/${maxRetries}): ${error.message}`);
+                if (attempts >= maxRetries) throw error;
+                await new Promise(resolve => setTimeout(resolve, 3000)); // 3s wait between retries
             }
         }
     }
