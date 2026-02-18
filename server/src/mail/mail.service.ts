@@ -34,7 +34,7 @@ export class MailService implements OnModuleInit {
         }
 
         this.logger.debug(`Initializing MailService with host: ${host}, service: ${(transportOptions as any).service || 'custom'}`);
-        this.transporter = nodemailer.createTransport(transportOptions);
+        this.transporter = nodemailer.createTransport(transportOptions as any);
     }
 
     async onModuleInit() {
