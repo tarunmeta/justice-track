@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 @Injectable()
 export class MailService implements OnModuleInit {
@@ -19,7 +20,7 @@ export class MailService implements OnModuleInit {
             greetingTimeout: 10000,
             socketTimeout: 20000,
             family: 4, // Force IPv4 to avoid ENETUNREACH on Render's IPv6
-        });
+        } as SMTPTransport.Options);
     }
 
     async onModuleInit() {
